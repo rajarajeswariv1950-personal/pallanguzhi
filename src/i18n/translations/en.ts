@@ -1,0 +1,350 @@
+/**
+ * English translations — the typed source of truth.
+ * Every UI string lives here; components must never hardcode copy.
+ */
+export const en = {
+  common: {
+    appName: "Phoenix Neumed's Pallanguzhi - A Tamil Traditional Game",
+    back: 'Back',
+    next: 'Next',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    ok: 'OK',
+    yes: 'Yes',
+    no: 'No',
+    close: 'Close',
+    done: 'Done',
+    save: 'Save',
+    loading: 'Loading\u2026',
+    continue: 'Continue',
+    start: 'Start',
+    quit: 'Quit',
+    retry: 'Retry',
+    comingSoon: 'Coming soon',
+    you: 'You',
+    player: 'Player',
+    vs: 'vs',
+    versionValue: 'Version {{value}}',
+  },
+  brand: {
+    studio: 'Phoenix Neumed',
+    tagline: 'A premium Tamil heritage board game',
+    /**
+     * Mandatory production credit — shown in the animated golden footer on every
+     * screen, localized per language (Tamil supplies its own rendering in ta.ts).
+     */
+    footerCredit: '© A Phoenix Neumed (a RR Group) Production',
+  },
+  language: {
+    title: 'Choose your language',
+    subtitle: 'Select your preferred language',
+    english: 'English',
+    tamil: '\u0BA4\u0BAE\u0BBF\u0BB4\u0BCD',
+    continue: 'Continue',
+  },
+  splash: {
+    tagline: 'The royal game of seeds',
+    loading: 'Preparing the board\u2026',
+  },
+  home: {
+    play: 'Play',
+    subtitle: 'Traditional Tamil Pallanguzhi',
+    howToPlay: 'How to Play',
+    settings: 'Settings',
+    profile: 'Profile',
+    about: 'About',
+    welcome: 'Welcome',
+    welcomeName: 'Welcome, {{name}}',
+  },
+  howToPlay: {
+    title: 'How to Play',
+    variantTitle: 'About This Version',
+    variant:
+      "This app plays the continuous-sowing Pallanguzhi variant: laps keep going while each lap ends on a filled pit, together with the kāsu four-capture rule and an end-of-lap capture, on a board of two rows of seven pits with six seeds per pit, decided in a single round. Regional Pallanguzhi has many variants — the rules below are exactly what this app's engine follows.",
+    overviewTitle: 'The Board',
+    overview:
+      "Pallanguzhi is played on a wooden board of two rows with seven pits each — fourteen pits in all. You own the row nearer you; your opponent owns the far row. Each of you also has a store for captured seeds. At the start every pit holds six seeds — shells, pebbles, or tamarind seeds — so the board opens with 84 seeds in play.",
+    setupTitle: 'Setting Up',
+    setup:
+      "Fill all fourteen pits with six seeds each and leave both stores empty. You own the seven pits on your side; your opponent owns the seven opposite. The first player begins.",
+    objectiveTitle: 'Objective',
+    objective:
+      "Capture more seeds than your opponent. Captured seeds leave the board and rest safely in your store, and whoever has gathered the most seeds when the round ends wins.",
+    movesTitle: 'Making a Move',
+    moves:
+      "On your turn, choose any one of your own non-empty pits and lift ALL of its seeds into your hand. You must start from a pit on your own side — but the seeds you sow travel across both rows.",
+    sowingTitle: 'Sowing',
+    sowing:
+      "Seeds are always sown in one fixed direction — anti-clockwise — dropping exactly one seed into each pit you pass, including your opponent's pits. The sowing simply wraps around the board; stores are never sown into.",
+    lapsTitle: 'Laps & Continuation',
+    laps:
+      "When the last seed leaves your hand, look at the very next pit:\n•  If it has seeds, scoop up all of them and keep sowing — a new lap, and your turn continues.\n•  If it is empty, your sowing stops there. That empty pit is where this lap ends.",
+    capturesTitle: 'Capturing',
+    captures:
+      "When a lap stops on an empty pit, look one pit further — the pit just beyond the empty one. If it holds seeds, you capture all of them into your store. If that pit is also empty, you capture nothing. Then your turn ends and play passes to your opponent.",
+    fourTitle: 'The Four Rule (Kāsu)',
+    four:
+      "At any point during sowing, the moment a pit's count becomes exactly four, those four seeds are ripe — kāsu — and are captured into your store at once. The pit is cleared and you keep sowing. This can happen more than once in a single turn.",
+    turnsTitle: 'Turns',
+    turns:
+      "Players alternate. A turn can be long: as long as each lap ends on a filled pit you keep sowing, lap after lap. Your turn ends only when a lap finishes on an empty pit, after resolving any capture beyond it.",
+    roundsTitle: 'How the Round Ends',
+    rounds:
+      "The round runs until the player whose turn it is has no seeds on their own side and cannot move. The round then ends, and every seed still on the board is banked by the player who owns that pit's side.",
+    scoringTitle: 'Scoring',
+    scoring:
+      "Your score is the number of seeds in your store when the round ends — those you captured during play plus any banked from your side at the end. Because the board holds 84 seeds, the two scores always add up to 84.",
+    winnerTitle: 'Winning',
+    winner:
+      "The player with more seeds in their store wins. Equal stores are a draw. This edition is decided in a single round.",
+    edgeTitle: 'Edge Cases & Good to Know',
+    edge:
+      "•  You must move if any of your pits has seeds — you cannot pass.\n•  A lone seed landing in an empty next pit ends the turn with no capture.\n•  A long hand wraps the board and can pass — and refill — your own starting pit.\n•  The four-rule and the end-of-lap capture can both trigger in the same turn.",
+    tipsTitle: 'Beginner Tips',
+    tips:
+      "Trace where your last seed will land before you commit, and check whether the pit beyond an empty one is worth the capture. Build a pit to exactly four for a quick kāsu. Remember you sow into your opponent's pits too, so watch what a move hands them. Longer laps aren't always better — sometimes a short, well-aimed sow captures more.",
+  },
+  tutorial: {
+    demoTitle: 'Watch a move',
+    demoIntro: 'Press play to watch a turn unfold — pause, step, rewind, or change speed anytime.',
+    play: 'Play',
+    replay: 'Replay',
+    pause: 'Pause',
+    restart: 'Restart',
+    rewind: 'Back',
+    forward: 'Next',
+    slower: 'Slower',
+    faster: 'Faster',
+    speed: 'Speed {{value}}',
+    stepLabel: 'Step {{current}} of {{total}}',
+    controlsHint: 'Play or pause, step one move at a time, or adjust the speed.',
+    step1: 'Pick up all the seeds from one of your pits.',
+    step2: 'Drop one seed into each following pit, in order.',
+    step3: 'Keep sowing — one seed per pit.',
+    step4: 'The final seed lands here.',
+    step5: 'A capture! These seeds go to your store.',
+    step6: 'Your turn ends — your opponent plays next.',
+    examplesTitle: 'Illustrated Examples',
+    sowingExampleTitle: 'Sowing',
+    sowingExampleCaption: 'Seeds from one pit are spread one-by-one into the pits that follow.',
+    captureExampleTitle: 'Capturing',
+    captureExampleCaption: 'Finishing in the right spot lets you collect seeds into your store.',
+    before: 'Before',
+    after: 'After',
+    faqTitle: 'Frequently Asked Questions',
+    faqQ1: 'How is the board set up?',
+    faqA1: 'Two rows of seven pits — one row per player — with seeds shared evenly to start.',
+    faqQ2: 'Which way do I sow?',
+    faqA2: 'Always one consistent direction (anti-clockwise), one seed per pit.',
+    faqQ3: 'How do I win?',
+    faqA3: 'Capture more seeds than your opponent across the rounds.',
+    faqQ4: 'Can I get another turn?',
+    faqA4: 'Yes — certain moves can earn you an extra turn.',
+  },
+  mode: {
+    title: 'Choose Game Mode',
+    single: 'Single Player',
+    singleDesc: 'Play against the computer',
+    sameDevice: 'Two Players',
+    sameDeviceDesc: 'Pass-and-play on this device',
+    online: 'Online Multiplayer',
+    onlineDesc: 'Play with friends over the internet',
+  },
+  difficulty: {
+    title: 'Select Difficulty',
+    easy: 'Easy',
+    easyDesc: 'Relaxed \u2014 great for learning',
+    medium: 'Medium',
+    mediumDesc: 'A balanced challenge',
+    hard: 'Hard',
+    hardDesc: 'The AI plans ahead',
+    aiThinking: 'Thinking\u2026',
+  },
+  sameDevice: {
+    title: 'Two Players',
+    player1: 'Player 1',
+    player2: 'Player 2',
+    player1Placeholder: 'Enter name',
+    player2Placeholder: 'Enter name',
+    handoffHint:
+      'Pass the device on each turn. A privacy screen appears between turns.',
+    start: 'Start Match',
+  },
+  online: {
+    title: 'Online Multiplayer',
+    create: 'Create Room',
+    createDesc: 'Start a private 2-player room and invite one friend',
+    join: 'Join Room',
+    joinDesc: 'Enter a room code to join a friend',
+    quickMatch: 'Quick Match',
+    quickMatchDesc: 'Instantly open a room and invite a friend',
+    twoPlayerNote: 'Rooms are private and hold exactly 2 players.',
+    yourName: 'Your Name',
+    namePlaceholder: 'Enter your name',
+  },
+  createRoom: {
+    title: 'Create Room',
+    roomCode: 'Room Code',
+    share: 'Share this code with one friend to play',
+    waiting: 'Waiting for an opponent\u2026',
+    invite: 'Share Invite',
+    shareMessage: 'Join my Pallanguzhi match! Room code: {{code}}',
+    twoPlayerNote: 'A private room for 2 players only.',
+  },
+  joinRoom: {
+    title: 'Join Room',
+    enterCode: 'Enter Room Code',
+    codePlaceholder: 'e.g. 4F7K2',
+    join: 'Join',
+  },
+  waitingRoom: {
+    title: 'Waiting Room',
+    host: 'Host',
+    guest: 'Guest',
+    ready: 'Ready',
+    notReady: 'Not Ready',
+    waitingForOpponent: 'Waiting for opponent\u2026',
+    waitingForReady: 'Waiting for both players to be ready\u2026',
+    startGame: 'Start Game',
+    leave: 'Leave Room',
+    players: 'Players {{count}} / 2',
+  },
+  gameplay: {
+    yourTurn: 'Your turn',
+    opponentTurn: "Opponent's turn",
+    playerTurn: "{{name}}'s turn",
+    store: 'Store',
+    captured: 'Captured',
+    round: 'Round {{number}}',
+    pause: 'Pause',
+    selectPit: 'Tap one of your pits to sow',
+    pitLabel: 'Pit, {{count}} seeds',
+    storeLabel: 'Store, {{count}} seeds',
+  },
+  pause: {
+    title: 'Paused',
+    resume: 'Resume',
+    restart: 'Restart',
+    settings: 'Settings',
+    quit: 'Quit to Menu',
+    confirmExitTitle: 'Leave the game?',
+    confirmExitOnline:
+      'If you leave an online match now, you will forfeit. Are you sure?',
+    confirmExit: 'Your current progress will be lost. Are you sure?',
+  },
+  results: {
+    title: 'Results',
+    win: 'Victory!',
+    lose: 'Defeat',
+    draw: "It's a Draw",
+    youWin: 'You win!',
+    youLose: 'You lose',
+    winnerIs: '{{name}} wins!',
+    finalScore: 'Final Score',
+    rematch: 'Rematch',
+    home: 'Home',
+    share: 'Share',
+  },
+  settings: {
+    title: 'Settings',
+    language: 'Language',
+    changeLanguage: 'Change Language',
+    audio: 'Audio',
+    music: 'Music',
+    sound: 'Sound Effects',
+    haptics: 'Vibration',
+    musicVolume: 'Music Volume',
+    volumeDown: 'Decrease volume',
+    volumeUp: 'Increase volume',
+    muted: 'Muted',
+    gameplaySection: 'Gameplay',
+    replayTutorial: 'Replay Tutorial',
+    viewRules: 'View Rules',
+    aboutSection: 'About',
+    about: 'About',
+    credits: 'Credits',
+    creditsDesc: 'About the app & production credits',
+    version: 'Version',
+    on: 'On',
+    off: 'Off',
+  },
+  profile: {
+    title: 'Profile',
+    name: 'Player Name',
+    namePlaceholder: 'Enter your name',
+    save: 'Save',
+    saved: 'Saved!',
+    stats: 'Statistics',
+    gamesPlayed: 'Games Played',
+    wins: 'Wins',
+  },
+  about: {
+    title: 'About',
+    intro:
+      'Phoenix Neumed primarily is a medically led healthcare and digital solutions company from India, offering pharmacovigilance, scientific/medical writing, and performance-driven digital services to support safe, effective clinical drug development and health communication services across the globe.',
+    mission:
+      'Guided by strong medical expertise and ethical values, Phoenix Neumed by producing this game electronically, aims to bridge technology, and community needs that blends fun with deep learning for the modern digital world.',
+    benefitsTitle: 'How this game helps',
+    benefit1:
+      'It helps players of all ages build key skills while staying connected to culture.',
+    benefit2:
+      'Develops counting, mental math, and numerical confidence in a playful way.',
+    benefit3:
+      'Strengthens strategic thinking, planning ahead, problem-solving, and critical judgment/thinking.',
+    benefit4:
+      'Improves focus, memory, observation, and hand-eye coordination through precise pebble/seed/shell movements.',
+    benefit5:
+      'Encourages face-to-face interaction, patience, and turn-taking, promoting family bonding and social skills.',
+    benefit6:
+      'Preserves traditional South Indian/Tamil culture and offers a calming, non-digital way to relax the mind.',
+    studioTitle: 'Credits to',
+    studio: 'Phoenix Neumed',
+    rightsReserved: 'All rights reserved.',
+    version: 'Version',
+  },
+  net: {
+    connecting: 'Connecting\u2026',
+    reconnecting: 'Reconnecting\u2026',
+    connectionFailed: 'Could not reach the server.',
+    roomClosed: 'The room was closed.',
+    opponent: 'Opponent',
+    waitingForOpponent: 'Waiting for an opponent to join\u2026',
+    opponentJoined: 'Opponent joined',
+    tapReady: 'Tap Ready when you are set',
+    bothReady: 'Both ready \u2014 starting\u2026',
+    rematchWaiting: 'Waiting for opponent\u2026',
+    opponentWantsRematch: 'Opponent wants a rematch',
+  },
+  errors: {
+    genericTitle: 'Something went wrong',
+    generic: 'Please try again.',
+    noNetworkTitle: 'No Connection',
+    noNetwork: 'Check your internet connection and try again.',
+    roomNotFoundTitle: 'Room Not Found',
+    roomNotFound: 'We could not find a room with that code.',
+    roomFullTitle: 'Room Full',
+    roomFull: 'This room already has two players.',
+    opponentLeftTitle: 'Opponent Left',
+    opponentLeft: 'Your opponent has disconnected.',
+    reconnectingTitle: 'Reconnecting\u2026',
+    reconnecting: 'Trying to restore your connection.',
+    invalidMoveTitle: 'Invalid Move',
+    invalidMove: 'That move is not allowed.',
+    assetUnavailable: 'Some artwork could not load.',
+    audioUnavailable: 'Audio is unavailable on this device.',
+    emptyLobbyTitle: 'No Rooms Yet',
+    emptyLobby: 'Create a room to get started.',
+  },
+} as const;
+
+/**
+ * Maps every string leaf to `string` while preserving the key structure, so
+ * other locales (Tamil) can supply their own values yet are still required to
+ * provide every key.
+ */
+type DeepStringify<T> = {
+  [K in keyof T]: T[K] extends string ? string : DeepStringify<T[K]>;
+};
+
+export type TranslationSchema = DeepStringify<typeof en>;
+export default en;
