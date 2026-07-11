@@ -20,7 +20,7 @@ export function HomeScreen({ navigation }: RootStackScreenProps<'Home'>) {
     <BrandedScreen showBack={false}>
       <View style={styles.container}>
         <FadeSlideIn delay={0}>
-          <BrandHero emphasis tagline={t('home.subtitle')} />
+          <BrandHero emphasis emblem tagline={t('home.subtitle')} />
         </FadeSlideIn>
 
         {name ? (

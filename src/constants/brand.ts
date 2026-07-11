@@ -15,13 +15,20 @@ export const brandAssets = {
    * used everywhere the app logo appears (hero, header, language-select centre,
    * home centre, pause), so the branding is visually identical across the whole
    * app. This is the true full-bleed board scene (hand, board, shells, lamps,
-   * journal, brand plate) with NO white padding — a landscape 16:9 photo
-   * (PNG, 1920 x 1080) that fills its framed container elegantly. It is NOT the
+   * journal, brand plate) with NO white padding — a landscape photo
+   * (PNG, 1408 x 768) that fills its framed container elegantly. It is NOT the
    * Phoenix emblem and NOT the white-margined native splash/icon square.
    */
   primaryLogo: require('../../assets/brand/pallanguzhi-logo.png') as ImageSourcePropType,
   /** Phoenix Neumed emblem (optimized 256px) — the compact secondary brand mark. */
   emblem: require('../../assets/brand/phoenix-emblem-256.png') as ImageSourcePropType,
+  /**
+   * Square Pallanguzhi app-logo mark — a purpose-built stylized top-down board
+   * glyph (gold-ringed pits on royal wood) that stays legible at small header
+   * sizes, where the wide board photo would collapse to an unreadable smudge.
+   * The photo (`primaryLogo`) remains the large hero/splash showcase.
+   */
+  appMark: require('../../assets/brand/app-mark-512.png') as ImageSourcePropType,
   /**
    * Neutral local placeholder block shown in the About-screen credit card.
    * Intended to be swapped later — replace `assets/brand/credit-placeholder.png`

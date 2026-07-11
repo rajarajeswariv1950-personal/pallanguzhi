@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { BrandedScreen, Button, AppText, Badge, StateMessage } from '@/components';
 import { GameBoard } from '@/features/game/components/GameBoard';
 import { Scoreboard } from '@/features/game/components/Scoreboard';
+import { MusicControlBar } from '@/features/game/components/MusicControlBar';
 import { legalMoves } from '@/features/game/engine';
 import { useMultiplayerStore } from './store';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
@@ -118,7 +119,10 @@ export function OnlineGameplay({ navigation, route }: RootStackScreenProps<'Game
       onBack={openPause}
       scroll={false}
       footer={
-        <Button label={t('gameplay.pause')} variant="secondary" icon="pause" onPress={openPause} />
+        <View style={styles.footer}>
+          <MusicControlBar />
+          <Button label={t('gameplay.pause')} variant="secondary" icon="pause" onPress={openPause} />
+        </View>
       }
     >
       <View style={styles.container}>
@@ -174,4 +178,5 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   hint: { marginTop: theme.spacing.xs },
+  footer: { gap: theme.spacing.sm },
 });

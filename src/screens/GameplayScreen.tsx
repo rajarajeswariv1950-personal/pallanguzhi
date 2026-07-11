@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { BrandedScreen, Button, AppText, Badge } from '@/components';
 import { GameBoard } from '@/features/game/components/GameBoard';
@@ -9,9 +9,19 @@ import { useAppTranslation } from '@/hooks/useAppTranslation';
 import { useProfileStore } from '@/store/profileStore';
 import type { RootStackScreenProps } from '@/navigation/types';
 import { OnlineGameplay } from '@/features/multiplayer/OnlineGameplay';
+import { MusicControlBar } from '@/features/game/components/MusicControlBar';
+import { setGameplayMusicActive } from '@/services/feedback';
 import { theme } from '@/theme';
 
 export function GameplayScreen(props: RootStackScreenProps<'Gameplay'>) {
+  // Background melody plays only while a match is on screen — every mode
+  // (single, same-device, online) enters through this screen, and the shared
+  // player in AudioService guarantees a single, non-overlapping loop.
+  useEffect(() => {
+    setGameplayMusicActive(true);
+    return () => setGameplayMusicActive(false);
+  }, []);
+
   // Online mode is fully server-authoritative; offline (single / same-device)
   // keeps the local deterministic controller from Phase 3 untouched.
   if (props.route.params.mode === 'online') {
@@ -87,7 +97,10 @@ function OfflineGameplay({ navigation, route }: RootStackScreenProps<'Gameplay'>
       onBack={openPause}
       scroll={false}
       footer={
-        <Button label={t('gameplay.pause')} variant="secondary" icon="pause" onPress={openPause} />
+        <View style={styles.footer}>
+          <MusicControlBar />
+          <Button label={t('gameplay.pause')} variant="secondary" icon="pause" onPress={openPause} />
+        </View>
       }
     >
       <View style={styles.container}>
@@ -135,4 +148,5 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   hint: { marginTop: theme.spacing.xs },
+  footer: { gap: theme.spacing.sm },
 });

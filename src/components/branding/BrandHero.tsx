@@ -25,9 +25,9 @@ export interface BrandHeroProps {
  * always visible, never cropped or reduced to a fragment — with the language-aware
  * app name beneath it.
  *
- * The Phoenix emblem is intentionally NOT shown here (it would duplicate the small
- * secondary emblem already in the header); it defaults off. The studio credit
- * lives once in the animated footer, keeping the hero clean.
+ * Pass `emblem` to crown the hero with the Phoenix emblem crest (used on the
+ * Language, Home, and About heroes). It defaults off for lighter surfaces; the
+ * studio credit still lives once in the animated footer.
  */
 export function BrandHero({
   tagline,
@@ -39,34 +39,37 @@ export function BrandHero({
 }: BrandHeroProps) {
   const { contentWidth, isTablet, isLandscape } = useResponsive();
   const horizontalPadding = theme.layout.screenPaddingH * 2;
+  // The hero board art spans the FULL available content width so the whole
+  // 1408x768 scene reads clearly — never a small chip or a zoomed strip.
+  // AppLogo derives its height from the artwork's own aspect ratio and
+  // renders with `contain`, so the entire board is always visible. Caps only
+  // stop it becoming outsized on tablets/web; phone landscape is capped so
+  // the hero (plus wordmark) still fits above the fold.
   const cap =
     logoMaxWidth ??
-    (compact
-      ? isTablet
-        ? 380
-        : 280
-      : emphasis
-        ? isTablet
-          ? 560
-          : isLandscape
-            ? 360
-            : 420
-        : isTablet
-          ? 460
-          : isLandscape
-            ? 300
-            : 340);
+    (isLandscape && !isTablet
+      ? compact
+        ? 340
+        : 400
+      : isTablet
+        ? compact
+          ? 520
+          : 640
+        : 720);
   const logoWidth = Math.min(contentWidth - horizontalPadding, cap);
 
   return (
     <View style={styles.wrap}>
       {emblem ? <EmblemBadge size={compact ? 44 : 56} /> : null}
 
-      {/* Main board key art with a soft royal-gold glow (hero treatment only). */}
+      {/* Main board key art with a soft royal-gold glow (hero treatment only).
+          The cream mat matches the corner radius so the rounded frame clips
+          only the mat — the FULL artwork, corners included, is always shown. */}
       <AppLogo
         width={logoWidth}
         framed
         radius={theme.radii.lg}
+        mat={theme.radii.lg}
         resizeMode="contain"
         style={styles.logoGlow}
       />

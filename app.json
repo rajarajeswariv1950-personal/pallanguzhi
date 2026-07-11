@@ -12,7 +12,7 @@
     "backgroundColor": "#FBF4E6",
     "primaryColor": "#D4A32C",
     "splash": {
-      "image": "./assets/icon.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#FBF4E6"
     },

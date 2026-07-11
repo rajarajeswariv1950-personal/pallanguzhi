@@ -2,7 +2,17 @@ import { playSfx } from './audio/AudioService';
 import { haptic, type HapticKind } from './haptics/HapticsService';
 import type { SfxName } from './audio/sounds';
 
-export { playSfx, initAudio, syncMusic, stopMusic, disposeAudio } from './audio/AudioService';
+export {
+  playSfx,
+  initAudio,
+  syncMusic,
+  stopMusic,
+  disposeAudio,
+  setGameplayMusicActive,
+  pauseGameplayMusic,
+  resumeGameplayMusic,
+  useMusicPlayback,
+} from './audio/AudioService';
 export { haptic } from './haptics/HapticsService';
 export type { SfxName } from './audio/sounds';
 export type { HapticKind } from './haptics/HapticsService';

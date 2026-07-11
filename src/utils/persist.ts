@@ -5,6 +5,8 @@ export const StorageKeys = {
   language: 'pnp.language',
   settings: 'pnp.settings',
   profileName: 'pnp.profile.name',
+  entitlement: 'pnp.entitlement',
+  musicHintDismissed: 'pnp.musicHintDismissed',
 } as const;
 
 /**

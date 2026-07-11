@@ -10,6 +10,7 @@ import { initAudio } from '@/services/feedback';
 import { useLanguageStore } from '@/store/languageStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useProfileStore } from '@/store/profileStore';
+import { useEntitlementStore } from '@/store/entitlementStore';
 
 // Initialise i18n synchronously with a safe default so the very first render
 // already has translations. Hydration then switches to the saved/device language.
@@ -19,13 +20,15 @@ export default function App() {
   const hydrateLanguage = useLanguageStore((s) => s.hydrate);
   const hydrateSettings = useSettingsStore((s) => s.hydrate);
   const hydrateProfile = useProfileStore((s) => s.hydrate);
+  const hydrateEntitlement = useEntitlementStore((s) => s.hydrate);
 
   useEffect(() => {
     void hydrateLanguage();
     void hydrateProfile();
+    void hydrateEntitlement();
     // Configure audio after settings are loaded so the music toggle is respected.
     void hydrateSettings().then(() => initAudio());
-  }, [hydrateLanguage, hydrateProfile, hydrateSettings]);
+  }, [hydrateLanguage, hydrateProfile, hydrateSettings, hydrateEntitlement]);
 
   return (
     <GestureHandlerRootView style={styles.flex}>

@@ -21,8 +21,8 @@ export function AboutScreen(_props: RootStackScreenProps<'About'>) {
   return (
     <BrandedScreen title={t('about.title')}>
       <View style={styles.container}>
-        {/* Full Pallanguzhi board key art (never the emblem). */}
-        <BrandHero compact tagline={t('brand.tagline')} />
+        {/* Hero: full board key art + app name + Phoenix emblem crest. */}
+        <BrandHero compact emblem tagline={t('brand.tagline')} />
 
         {/* Company overview */}
         <Card>
@@ -64,11 +64,13 @@ export function AboutScreen(_props: RootStackScreenProps<'About'>) {
           <AppText variant="h3" style={styles.spacer}>
             {t('about.studio')}
           </AppText>
-          {/* Placeholder image — swap assets/brand/credit-placeholder.png later. */}
+          {/* Placeholder image — swap assets/brand/credit-placeholder.png later.
+              Rendered smaller, centered, and contained so the full credit
+              artwork is always visible with no cropping. */}
           <Image
             source={brandAssets.creditPlaceholder}
             style={styles.creditPlaceholder}
-            resizeMode="cover"
+            resizeMode="contain"
             fadeDuration={0}
             accessibilityRole="image"
             accessibilityLabel={t('about.studio')}
@@ -95,9 +97,11 @@ const styles = StyleSheet.create({
   },
   spacer: { marginTop: theme.spacing.xs },
   creditPlaceholder: {
-    width: '100%',
-    aspectRatio: 16 / 9,
+    width: 220,
+    height: 220,
+    alignSelf: 'center',
     marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
     borderRadius: theme.radii.md,
     borderWidth: 1,
     borderColor: theme.colors.border,

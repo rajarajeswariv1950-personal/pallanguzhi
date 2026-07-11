@@ -6,8 +6,6 @@ import {
   Button,
   AppText,
   AppWordmark,
-  AppLogo,
-  PRIMARY_LOGO_ASPECT,
   EmblemBadge,
   AppFooter,
   Divider,
@@ -33,19 +31,14 @@ export function PauseModalScreen({ navigation, route }: RootStackScreenProps<'Pa
         onPress={resume}
       />
       <Card style={styles.card}>
-        {/* Branded treatment — full logo image + language-aware app name + emblem */}
+        {/* Branded treatment — language-aware app name + emblem. The board key
+            art is reserved for tall hero surfaces where ALL of it is visible;
+            a 46px chip here would reduce it to an unreadable sliver. */}
         <View style={styles.brandRow}>
-          <AppLogo
-            width={Math.round(46 * PRIMARY_LOGO_ASPECT)}
-            height={46}
-            framed
-            radius={theme.radii.sm}
-            resizeMode="contain"
-          />
           <View style={styles.brandText}>
             <AppWordmark size="inline" align="left" numberOfLines={2} />
           </View>
-          <EmblemBadge size={34} />
+          <EmblemBadge size={40} />
         </View>
         <Divider style={styles.divider} />
 

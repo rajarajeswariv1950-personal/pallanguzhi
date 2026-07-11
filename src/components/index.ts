@@ -20,6 +20,8 @@ export type { InputProps } from './ui/Input';
 export { EmblemBadge } from './branding/EmblemBadge';
 export { AppLogo, PRIMARY_LOGO_ASPECT } from './branding/AppLogo';
 export { AppWordmark } from './branding/AppWordmark';
+export { AppMark } from './branding/AppMark';
+export type { AppMarkProps } from './branding/AppMark';
 export { BrandHero } from './branding/BrandHero';
 export type { BrandHeroProps } from './branding/BrandHero';
 export { BrandedHeader } from './branding/BrandedHeader';

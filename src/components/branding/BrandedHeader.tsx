@@ -20,16 +20,17 @@ export interface BrandedHeaderProps {
 
 /**
  * The single global branded header, present on every screen from Home onward.
- * It carries all three mandatory brand elements as a proper lockup:
- *   1. the full carved-board app logo image (contain-fit — never cropped,
- *      stretched, or reduced to the emblem),
- *   2. the language-aware app name, and
- *   3. the Phoenix Neumed emblem as a secondary brass-coin mark.
- * The large hero treatment of the logo lives in the screen body (BrandHero);
- * here it is a crisp, legible compact lockup.
+ * It is a compact lockup of the language-aware app name and the Phoenix
+ * Neumed emblem (the secondary brand mark).
+ *
+ * The full carved-board app logo appears at the top-left as a compact framed
+ * chip (rendered with `contain`, so the ENTIRE board is visible and never
+ * cropped), followed by the language-aware app name, with the emblem at the
+ * right. The larger showcase of the same board lives in BrandHero
+ * (home/language/about) and the splash, where it can be shown big.
  *
  * Responsive:
- *  - phone portrait / tablet / web: brand strip (logo + name + emblem) + nav row
+ *  - phone portrait / tablet / web: brand strip (name + emblem) + nav row
  *  - phone landscape: a single compact row to conserve vertical space
  */
 export function BrandedHeader({ title, showBack = true, onBack }: BrandedHeaderProps) {
@@ -37,10 +38,16 @@ export function BrandedHeader({ title, showBack = true, onBack }: BrandedHeaderP
   const { isTablet, isLandscape } = useResponsive();
   const singleRow = isLandscape && !isTablet;
 
-  const logoHeight = singleRow ? 44 : isTablet ? 66 : 58;
-  const logoWidth = Math.round(logoHeight * PRIMARY_LOGO_ASPECT);
   const emblemSize = singleRow ? 30 : isTablet ? 42 : 36;
   const showNavRow = showBack || !!title;
+
+  // Top-left app logo: the ACTUAL uploaded board artwork, shown whole. The
+  // chip is sized to the artwork's own 1408:768 aspect ratio and rendered with
+  // `contain`, and the cream mat equals the corner radius so the rounded frame
+  // clips only the mat — the full artwork, corners included, is always visible.
+  const logoImageHeight = singleRow ? 32 : isTablet ? 52 : 44;
+  const logoMat = singleRow ? 4 : 5;
+  const logoWidth = Math.round(logoImageHeight * PRIMARY_LOGO_ASPECT) + logoMat * 2;
 
   return (
     <LinearGradient
@@ -51,14 +58,8 @@ export function BrandedHeader({ title, showBack = true, onBack }: BrandedHeaderP
         <View style={styles.brandRow}>
           {singleRow && showBack ? <BackButton onPress={onBack} /> : null}
 
-          {/* Full app logo image — the primary brand mark (contain, framed). */}
-          <AppLogo
-            width={logoWidth}
-            height={logoHeight}
-            framed
-            radius={theme.radii.sm}
-            resizeMode="contain"
-          />
+          {/* App logo — the full uploaded board artwork, never cropped */}
+          <AppLogo width={logoWidth} mat={logoMat} radius={logoMat} framed />
 
           {/* Language-aware app name */}
           <View style={styles.wordmarkWrap}>

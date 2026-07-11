@@ -5,11 +5,11 @@ import { theme } from '@/theme';
 
 /**
  * Intrinsic aspect ratio of the primary logo — the full carved-board key art
- * (`assets/brand/pallanguzhi-logo.png`, 1920 x 1080). Every sized container
+ * (`assets/brand/pallanguzhi-logo.png`, 1408 x 768). Every sized container
  * derives its shape from this exact ratio, so the full-bleed board photo fills
  * the frame edge-to-edge with no white letterbox bars and no crop.
  */
-export const PRIMARY_LOGO_ASPECT = 1920 / 1080;
+export const PRIMARY_LOGO_ASPECT = 1408 / 768;
 
 export interface AppLogoProps {
   width: number;
@@ -17,6 +17,13 @@ export interface AppLogoProps {
   framed?: boolean;
   radius?: number;
   resizeMode?: ImageResizeMode;
+  /**
+   * Inner cream mat (px). With a rounded frame + `overflow: hidden`, a
+   * zero-mat image loses its extreme corners to the border radius; a mat
+   * ≥ the radius guarantees the FULL artwork — corners included — stays
+   * visible, with the rounding cutting only the mat.
+   */
+  mat?: number;
   style?: ViewStyle;
 }
 
@@ -32,10 +39,14 @@ export function AppLogo({
   // Default to `contain` so the full carved-board key art is NEVER cropped,
   // even if a caller omits it. Sized containers use the logo's own aspect ratio.
   resizeMode = 'contain',
+  mat = 0,
   style,
 }: AppLogoProps) {
   const { t } = useAppTranslation();
-  const resolvedHeight = height ?? Math.round(width / PRIMARY_LOGO_ASPECT);
+  // The mat surrounds the artwork, so the image area shrinks by 2*mat while
+  // keeping the artwork's exact aspect ratio (no distortion, no crop).
+  const imageWidth = Math.max(1, width - mat * 2);
+  const imageHeight = height ?? Math.round(imageWidth / PRIMARY_LOGO_ASPECT);
   return (
     <View
       accessible
@@ -44,7 +55,8 @@ export function AppLogo({
       style={[
         {
           width,
-          height: resolvedHeight,
+          height: imageHeight + mat * 2,
+          padding: mat,
           borderRadius: radius,
           overflow: 'hidden',
           backgroundColor: theme.colors.surface,
@@ -56,7 +68,7 @@ export function AppLogo({
     >
       <Image
         source={brandAssets.primaryLogo}
-        style={StyleSheet.absoluteFill}
+        style={{ width: imageWidth, height: imageHeight }}
         resizeMode={resizeMode}
         fadeDuration={0}
       />
