@@ -49,11 +49,15 @@ export const PREMIUM_PRICING = {
 export const OWNER_GRANT_FREE_ACCESS = false;
 
 /**
- * ACCESS CODES — SERVER-VALIDATED. No codes live in the app bundle.
- * The owner generates 1 owner code + 200 friend codes locally with
- * `node scripts/generate-premium-codes.mjs`; the single source of truth is
- * server/data/premium-codes.json (statuses managed by hand — no Redis, no
- * Upstash, no external store). Redemption goes through
- * features/premium/accessCodeApi.ts → POST /premium/redeem on the room API,
- * which enforces unused / used / revoked from that file.
+ * ACCESS CODES — server-first validation with a hashed local fallback.
+ * No PLAINTEXT codes live in the app bundle. The owner generates 1 owner
+ * code + 200 friend codes locally with `node scripts/generate-premium-codes.mjs`;
+ * the single source of truth is server/data/premium-codes.json (statuses
+ * managed by hand — no Redis, no Upstash, no external store). Redemption
+ * goes through features/premium/accessCodeApi.ts → POST /premium/redeem on
+ * the room API, which enforces unused / used / revoked from that file. If
+ * the server is unreachable or running a stale deploy, the typed code is
+ * checked against the bundled SHA-256 hash manifest (codeHashes.ts) so
+ * genuinely issued codes always unlock; server-confirmed used/revoked
+ * statuses stay final.
  */
