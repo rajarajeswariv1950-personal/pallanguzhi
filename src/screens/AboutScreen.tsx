@@ -55,6 +55,20 @@ export function AboutScreen(_props: RootStackScreenProps<'About'>) {
           </View>
         </Card>
 
+        {/* A Note on Tradition — the game's cultural heart (i18n en/ta). */}
+        <Card>
+          <AppText variant="title">{t('about.traditionTitle')}</AppText>
+          <AppText variant="body" muted style={styles.paragraph}>
+            {t('about.traditionBody1')}
+          </AppText>
+          <AppText variant="body" muted style={styles.paragraph}>
+            {t('about.traditionBody2')}
+          </AppText>
+          <AppText variant="body" muted style={styles.paragraph}>
+            {t('about.traditionBody3')}
+          </AppText>
+        </Card>
+
         {/* Studio credit — "Credits to" / "Phoenix Neumed" + a local placeholder
             image block for the user to replace later. */}
         <Card>
@@ -96,6 +110,7 @@ const styles = StyleSheet.create({
     paddingTop: theme.spacing.sm,
   },
   spacer: { marginTop: theme.spacing.xs },
+  paragraph: { marginTop: theme.spacing.md },
   creditPlaceholder: {
     width: 220,
     height: 220,

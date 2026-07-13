@@ -11,8 +11,12 @@ export type RootStackParamList = {
   SinglePlayerDifficulty: undefined;
   SameDeviceSetup: undefined;
   OnlineLobby: undefined;
-  /** `quick` marks a one-tap Quick Match: auto-create a room and offer to share it. */
-  CreateRoom: { name?: string; quick?: boolean } | undefined;
+  /**
+   * `quick` marks a one-tap Quick Match: auto-create a room and offer to
+   * share it. `difficulty` is the host-chosen match level; it travels in the
+   * shared room document so the guest plays the identical rule set.
+   */
+  CreateRoom: { name?: string; quick?: boolean; difficulty?: Difficulty } | undefined;
   JoinRoom: { name?: string } | undefined;
   WaitingRoom: { roomCode: string; isHost: boolean };
   Gameplay: {

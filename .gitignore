@@ -42,3 +42,8 @@ yarn-error.*
 
 # local env
 .env
+
+# separate deployed repo (has its own .git) — never embed it here
+pallanguzhi-room-api/
+
+# (premium codes live in server/data/premium-codes.json — tracked on purpose; keep this repo private)

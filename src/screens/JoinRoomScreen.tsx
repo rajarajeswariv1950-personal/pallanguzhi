@@ -21,6 +21,7 @@ export function JoinRoomScreen({ navigation, route }: RootStackScreenProps<'Join
   const roomCode = useMultiplayerStore((s) => s.roomCode);
   const errorKey = useMultiplayerStore((s) => s.errorKey);
 
+  // Shared room codes are short uppercase alphanumerics (4-8 chars).
   const canJoin = code.trim().length >= 4 && !submitting;
 
   // Navigate once the server confirms us as a guest in a room.
@@ -76,7 +77,7 @@ export function JoinRoomScreen({ navigation, route }: RootStackScreenProps<'Join
             placeholder={t('joinRoom.codePlaceholder')}
             autoCapitalize="characters"
             autoCorrect={false}
-            maxLength={6}
+            maxLength={8}
             centered
             returnKeyType="go"
             onSubmitEditing={join}

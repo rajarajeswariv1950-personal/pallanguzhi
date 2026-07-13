@@ -2,10 +2,10 @@ import { create } from 'zustand';
 import { storage, StorageKeys } from '@/utils/persist';
 import {
   OWNER_GRANT_FREE_ACCESS,
-  classifyAccessCode,
   type Entitlement,
   type EntitlementSource,
 } from '@/features/premium/entitlements';
+import { redeemAccessCode, type RedeemResult } from '@/features/premium/accessCodeApi';
 
 /**
  * Premium entitlement state — safe foundation, no live payments.
@@ -22,10 +22,11 @@ interface EntitlementState extends Entitlement {
    */
   unlock: (source: Exclude<EntitlementSource, 'none'>) => void;
   /**
-   * Owner/friend access-code redemption (local placeholder — see
-   * features/premium/entitlements.ts). Returns true when the code unlocked.
+   * Server-validated access-code redemption (see
+   * features/premium/accessCodeApi.ts). Resolves 'ok' when the server
+   * accepted the code and premium was unlocked; otherwise reports why.
    */
-  redeemCode: (code: string) => boolean;
+  redeemCode: (code: string) => Promise<RedeemResult>;
   /** Dev/testing helper — relock (does not touch any payment provider). */
   relock: () => void;
 }
@@ -56,12 +57,13 @@ export const useEntitlementStore = create<EntitlementState>((set, get) => ({
     set({ premium: true, source });
     persist(get());
   },
-  redeemCode: (code) => {
-    const source = classifyAccessCode(code);
-    if (!source) return false;
-    set({ premium: true, source });
-    persist(get());
-    return true;
+  redeemCode: async (code) => {
+    const result = await redeemAccessCode(code);
+    if (result === 'ok') {
+      set({ premium: true, source: 'friendCode' });
+      persist(get());
+    }
+    return result;
   },
   relock: () => {
     set({ ...DEFAULTS });

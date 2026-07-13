@@ -1,8 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { BrandedScreen, OptionCard, Badge, FadeSlideIn } from '@/components';
 import { PremiumLockCard } from '@/features/premium/PremiumLockCard';
-import { PREMIUM_PRICING } from '@/features/premium/entitlements';
-import { useEntitlementStore } from '@/store/entitlementStore';
+import { usePremium } from '@/features/premium/usePremium';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
 import type { Difficulty } from '@/features/game/types';
 import type { RootStackScreenProps } from '@/navigation/types';
@@ -12,25 +11,27 @@ export function SinglePlayerDifficultyScreen({
   navigation,
 }: RootStackScreenProps<'SinglePlayerDifficulty'>) {
   const { t } = useAppTranslation();
-  // Premium gate — Basic (Easy) is always free; the next levels (Medium/Hard)
-  // unlock via the entitlement store. SAFE FOUNDATION: no live payments —
-  // see src/features/premium/entitlements.ts for the production path.
-  const premium = useEntitlementStore((s) => s.premium);
+  // Premium gate — Basic (Easy) is always free; Medium/Hard unlock via the
+  // locally persisted entitlement, read through the centralized usePremium
+  // hook (never the raw store). Unlocking happens with a friend code in the
+  // PremiumLockCard below.
+  const { isPremium, isDifficultyLocked } = usePremium();
 
   const start = (difficulty: Difficulty) => {
     navigation.navigate('Gameplay', { mode: 'single', difficulty });
   };
 
   // Free vs Premium clarity: Basic/Easy is always free (labelled "Free");
-  // Medium/Hard carry a lock + "Premium" badge and show the one-time price.
-  // Only these advanced levels are gated — the rest of the game stays free.
+  // locked levels carry a lock + "Premium" badge and explain that a friend
+  // code (entered below) unlocks them. Only these advanced levels are gated.
   const lockedBadge = (
     <View style={styles.badgeCol}>
       <Badge label={t('premium.lockedBadge')} tone="gold" />
       <Badge label={t('premium.locked')} tone="neutral" />
     </View>
   );
-  const priceHint = t('premium.unlockHint', PREMIUM_PRICING);
+  const subtitleFor = (difficulty: Difficulty, desc: string) =>
+    isDifficultyLocked(difficulty) ? `${desc} · ${t('premium.friendCodeHint')}` : desc;
 
   return (
     <BrandedScreen title={t('difficulty.title')}>
@@ -48,24 +49,24 @@ export function SinglePlayerDifficultyScreen({
           <OptionCard
             icon="flame"
             title={t('difficulty.medium')}
-            subtitle={premium ? t('difficulty.mediumDesc') : `${t('difficulty.mediumDesc')} · ${priceHint}`}
-            onPress={premium ? () => start('medium') : undefined}
-            disabled={!premium}
-            rightSlot={premium ? undefined : lockedBadge}
+            subtitle={subtitleFor('medium', t('difficulty.mediumDesc'))}
+            onPress={isDifficultyLocked('medium') ? undefined : () => start('medium')}
+            disabled={isDifficultyLocked('medium')}
+            rightSlot={isDifficultyLocked('medium') ? lockedBadge : undefined}
           />
         </FadeSlideIn>
         <FadeSlideIn delay={140}>
           <OptionCard
             icon="skull"
             title={t('difficulty.hard')}
-            subtitle={premium ? t('difficulty.hardDesc') : `${t('difficulty.hardDesc')} · ${priceHint}`}
-            onPress={premium ? () => start('hard') : undefined}
-            disabled={!premium}
-            rightSlot={premium ? undefined : lockedBadge}
+            subtitle={subtitleFor('hard', t('difficulty.hardDesc'))}
+            onPress={isDifficultyLocked('hard') ? undefined : () => start('hard')}
+            disabled={isDifficultyLocked('hard')}
+            rightSlot={isDifficultyLocked('hard') ? lockedBadge : undefined}
           />
         </FadeSlideIn>
 
-        {!premium ? (
+        {!isPremium ? (
           <FadeSlideIn delay={210}>
             <PremiumLockCard />
           </FadeSlideIn>

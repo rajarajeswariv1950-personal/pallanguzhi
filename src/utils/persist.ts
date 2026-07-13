@@ -6,6 +6,7 @@ export const StorageKeys = {
   settings: 'pnp.settings',
   profileName: 'pnp.profile.name',
   entitlement: 'pnp.entitlement',
+  deviceId: 'pnp.deviceId',
   musicHintDismissed: 'pnp.musicHintDismissed',
 } as const;
 

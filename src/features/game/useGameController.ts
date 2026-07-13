@@ -8,6 +8,7 @@ import {
   type Player,
 } from './engine';
 import { chooseMove } from './ai';
+import { rulesForTwoPlayer } from './difficultyRules';
 import type { Difficulty, GameMode } from './types';
 import { feedback, haptic, playSfx } from '@/services/feedback';
 
@@ -48,7 +49,13 @@ export function useGameController({
   difficulty,
   onGameOver,
 }: UseGameControllerArgs): GameController {
-  const [state, setState] = useState<GameState>(() => createInitialState());
+  // Single player keeps the classic board (difficulty = AI strength); a
+  // same-device two-player match expresses difficulty through rule variants.
+  const newGame = useCallback(
+    () => createInitialState(mode === 'sameDevice' ? rulesForTwoPlayer(difficulty) : {}),
+    [mode, difficulty],
+  );
+  const [state, setState] = useState<GameState>(newGame);
   const [thinking, setThinking] = useState(false);
   const stateRef = useRef(state);
   const gameOverHandled = useRef(false);
@@ -83,10 +90,10 @@ export function useGameController({
     if (aiTimer.current) clearTimeout(aiTimer.current);
     gameOverHandled.current = false;
     setThinking(false);
-    const fresh = createInitialState();
+    const fresh = newGame();
     stateRef.current = fresh;
     setState(fresh);
-  }, []);
+  }, [newGame]);
 
   // Schedule AI moves in single-player. The compute is fast; the delay just
   // makes the opponent feel deliberate and keeps interactions smooth.

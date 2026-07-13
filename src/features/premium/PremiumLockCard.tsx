@@ -23,15 +23,20 @@ export function PremiumLockCard() {
   const redeemCode = useEntitlementStore((s) => s.redeemCode);
   const [showNote, setShowNote] = useState(false);
   const [code, setCode] = useState('');
-  const [codeState, setCodeState] = useState<'idle' | 'invalid' | 'accepted'>('idle');
+  const [codeState, setCodeState] = useState<
+    'idle' | 'checking' | 'invalid' | 'used' | 'revoked' | 'network' | 'accepted'
+  >('idle');
 
-  const applyCode = () => {
-    if (!code.trim()) return;
-    if (redeemCode(code)) {
+  const applyCode = async () => {
+    if (!code.trim() || codeState === 'checking') return;
+    setCodeState('checking');
+    // Server-validated redemption — the app bundle holds no codes.
+    const result = await redeemCode(code);
+    if (result === 'ok') {
       setCodeState('accepted');
       feedback('win', 'success');
     } else {
-      setCodeState('invalid');
+      setCodeState(result);
       haptic('warning');
     }
   };
@@ -102,17 +107,26 @@ export function PremiumLockCard() {
           />
         </View>
         <Button
-          label={t('premium.codeApply')}
+          label={codeState === 'checking' ? t('premium.codeChecking') : t('premium.codeApply')}
           size="md"
           fullWidth={false}
           variant="secondary"
-          disabled={!code.trim()}
+          disabled={!code.trim() || codeState === 'checking'}
           onPress={applyCode}
         />
       </View>
-      {codeState === 'invalid' ? (
+      {codeState === 'invalid' || codeState === 'used' || codeState === 'revoked' ? (
         <AppText variant="small" align="center" color={theme.colors.danger} style={styles.note}>
-          {t('premium.codeInvalid')}
+          {codeState === 'used'
+            ? t('premium.codeUsed')
+            : codeState === 'revoked'
+              ? t('premium.codeRevoked')
+              : t('premium.codeInvalid')}
+        </AppText>
+      ) : null}
+      {codeState === 'network' ? (
+        <AppText variant="small" align="center" color={theme.colors.danger} style={styles.note}>
+          {t('premium.codeNetwork')}
         </AppText>
       ) : null}
       {codeState === 'accepted' ? (

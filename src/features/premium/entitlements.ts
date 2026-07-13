@@ -49,25 +49,11 @@ export const PREMIUM_PRICING = {
 export const OWNER_GRANT_FREE_ACCESS = false;
 
 /**
- * LOCAL-ONLY ACCESS CODES (placeholder for manual gifting).
- * Entered via the "Have an access code?" field under the difficulty list.
- * - OWNER_CODE: the owner's personal unlock (grants source 'ownerGrant').
- * - FRIEND_CODES: hand out individually to friends (source 'friendCode').
- * These are client-side placeholders — NOT security. Before public release,
- * move validation behind a tiny endpoint or a RevenueCat promotional
- * entitlement, and rotate anything that ever shipped in a binary.
+ * ACCESS CODES — SERVER-VALIDATED. No codes live in the app bundle.
+ * The owner generates 1 owner code + 200 friend codes locally with
+ * `node scripts/generate-premium-codes.mjs`; the single source of truth is
+ * server/data/premium-codes.json (statuses managed by hand — no Redis, no
+ * Upstash, no external store). Redemption goes through
+ * features/premium/accessCodeApi.ts → POST /premium/redeem on the room API,
+ * which enforces unused / used / revoked from that file.
  */
-export const OWNER_CODE = 'PHOENIX-OWNER-2026';
-export const FRIEND_CODES: readonly string[] = ['NEUMED-FRIEND-01', 'NEUMED-FRIEND-02'];
-
-/**
- * Validate a manually-entered access code. Case/whitespace tolerant.
- * Returns the entitlement source it grants, or null if unrecognised.
- */
-export function classifyAccessCode(raw: string): 'ownerGrant' | 'friendCode' | null {
-  const code = raw.trim().toUpperCase();
-  if (!code) return null;
-  if (code === OWNER_CODE) return 'ownerGrant';
-  if (FRIEND_CODES.includes(code)) return 'friendCode';
-  return null;
-}

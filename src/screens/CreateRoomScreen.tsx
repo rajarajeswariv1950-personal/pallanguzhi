@@ -19,9 +19,13 @@ export function CreateRoomScreen({ navigation, route }: RootStackScreenProps<'Cr
   const isQuick = route.params?.quick ?? false;
   const displayName = (route.params?.name ?? profileName ?? '').trim();
   const nameRef = useRef(displayName);
+  // Host-chosen match level (from the lobby selector); written into the
+  // shared room document so the guest starts with the identical rules.
+  const level = route.params?.difficulty ?? 'medium';
+  const levelRef = useRef(level);
 
   useEffect(() => {
-    createRoom(nameRef.current || undefined);
+    createRoom(nameRef.current || undefined, levelRef.current);
   }, [createRoom]);
 
   // Real native share sheet — invites a friend with the room code. Wrapped so a
@@ -73,6 +77,7 @@ export function CreateRoomScreen({ navigation, route }: RootStackScreenProps<'Cr
           ) : (
             <View />
           )}
+          <Badge label={t(`difficulty.${level}`)} tone="gold" />
           <Badge label={t('waitingRoom.players', { count: playerCount })} tone="neutral" />
         </View>
 

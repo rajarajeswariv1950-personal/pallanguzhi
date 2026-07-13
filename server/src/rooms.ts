@@ -1,10 +1,11 @@
-import { randomUUID } from 'node:crypto';
+import { randomInt, randomUUID } from 'node:crypto';
 import { WebSocket } from 'ws';
 import { applyMove, createInitialState, isLegalMove, type GameState, type Player } from './engine';
 import type { ClientMessage, PresenceInfo, ServerMessage } from './protocol';
 
+// Uppercase alphanumerics with the confusable characters (0/O, 1/I) removed.
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const CODE_LENGTH = 5;
+const CODE_LENGTH = 6;
 const DISCONNECT_GRACE_MS = 30_000;
 const ROOM_TTL_MS = 2 * 60 * 60_000;
 
@@ -287,11 +288,13 @@ export class RoomManager {
   }
 
   private generateCode(): string {
+    // Cryptographically random, non-sequential, non-guessable codes
+    // (32^6 ≈ 1.07 billion combinations).
     let code = '';
     do {
       code = '';
       for (let i = 0; i < CODE_LENGTH; i += 1) {
-        code += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+        code += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)];
       }
     } while (this.rooms.has(code));
     return code;

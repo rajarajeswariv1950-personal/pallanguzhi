@@ -5,13 +5,26 @@ game **Pallanguzhi**, built with **Expo SDK 54** and React Native + TypeScript.
 Runs on **web, iOS, and Android** from a single codebase.
 
 ## Features
-- **Single player** vs AI — Easy / Medium / Hard
-- **Same-device** two-player (pass-and-play)
-- **Online multiplayer** — create/join rooms, live sync, rematch (Render-deployable WebSocket server)
+- **Single player** vs AI — Easy / Medium / Hard (Easy is free; Medium/Hard are premium)
+- **Same-device** two-player (pass-and-play) — **premium**, with three levels (Easy / Medium / Hard rule variants)
+- **Online multiplayer** — create/join rooms, live sync, rematch — **premium**, with three host-chosen levels (Easy / Medium / Hard rule variants)
+- **Strict paywall**: premium unlocks ONLY via a one-time purchase or a server-validated friend access code (`scripts/generate-premium-codes.mjs`); no other unlock path exists
 - Deterministic, unit-tested rules engine (the server reuses the exact same engine)
 - Rich bilingual tutorial with an animated mini-demo
 - Premium carved-wood / brass / gold heritage UI, sounds, haptics, and animations
 - Consistent branding on every screen: primary logo + app name (in the selected language) + Phoenix Neumed emblem
+
+### Two-player levels (rule variants)
+Two-player matches have no AI, so difficulty is expressed through the rules
+(`src/features/game/difficultyRules.ts`):
+| Level | Seeds per pit | Kāsu (capture-on-four) |
+|---|---|---|
+| Easy | 4 | off |
+| Medium | 6 (classic) | on |
+| Hard | 7 | on |
+
+The host's chosen level travels inside the shared room document, so both
+online players always start from the identical deterministic state.
 
 ## Tech stack
 Expo SDK 54 · React Native 0.81 · React 19 · TypeScript · React Navigation ·
@@ -78,6 +91,17 @@ For local cross-device testing, set `EXPO_PUBLIC_SERVER_URL=ws://<LAN-IP>:8080`.
 - New **Web Service** → environment **Node** → root directory `server/`
 - Build: `npm install && npm run build` · Start: `npm run start` · Health: `/health`
 - After deploy, set the app's `EXPO_PUBLIC_SERVER_URL` to `wss://<service>.onrender.com`.
+
+### Manual `dist/` export (all platforms)
+```bash
+npx expo export --platform ios --platform android --platform web --output-dir dist
+```
+IMPORTANT: always export **all three platforms**. An iOS-only export produces a
+`dist/metadata.json` with no Android bundle, which is exactly why a previously
+deployed build loaded in Expo Go on iOS but failed on Android. Verify with:
+`python3 -c "import json; print(list(json.load(open('dist/metadata.json'))['fileMetadata']))"`
+→ must print `['ios', 'android']` (web lives in `index.html`). The `server/`
+service statically hosts this `dist/` (see `STATIC_DIR`).
 
 ## Building for the stores (EAS)
 ```bash

@@ -159,6 +159,10 @@ export const en = {
     hard: 'Hard',
     hardDesc: 'The AI plans ahead',
     aiThinking: 'Thinking\u2026',
+    // Two-player (same device & online) levels are rule variants, not AI.
+    twoPlayerEasyDesc: '4 seeds per pit, no k\u0101su rule \u2014 quick, relaxed rounds',
+    twoPlayerMediumDesc: 'The classic game \u2014 6 seeds per pit with the k\u0101su rule',
+    twoPlayerHardDesc: '7 seeds per pit with the k\u0101su rule \u2014 long, strategic battles',
   },
   sameDevice: {
     title: 'Two Players',
@@ -166,6 +170,7 @@ export const en = {
     player2: 'Player 2',
     player1Placeholder: 'Enter name',
     player2Placeholder: 'Enter name',
+    chooseLevel: 'Choose a level to start',
     handoffHint:
       'Pass the device on each turn. A privacy screen appears between turns.',
     start: 'Start Match',
@@ -181,6 +186,7 @@ export const en = {
     twoPlayerNote: 'Rooms are private and hold exactly 2 players.',
     yourName: 'Your Name',
     namePlaceholder: 'Enter your name',
+    levelTitle: 'Match level (for rooms you create)',
   },
   createRoom: {
     title: 'Create Room',
@@ -297,6 +303,13 @@ export const en = {
       'Encourages face-to-face interaction, patience, and turn-taking, promoting family bonding and social skills.',
     benefit6:
       'Preserves traditional South Indian/Tamil culture and offers a calming, non-digital way to relax the mind.',
+    traditionTitle: '🪷 A Note on Tradition',
+    traditionBody1:
+      'Pallanguzhi is, at heart, a game of touch, togetherness, and tradition. The feel of polished shells in your palm, the rhythm of seeds dropping into wooden pits, and the joy of playing face to face with family and friends are what make it truly special.',
+    traditionBody2:
+      'This digital version is a loving companion, not a replacement. It is here for the moments when the traditional board is not within reach. Play solo, practice your strategy, enjoy a quick game with a partner, or connect with loved ones who are far away.',
+    traditionBody3:
+      'Whenever you can, gather around a real Pallanguzhi board. Let this app keep the game alive in your pocket, and the tradition alive in your home. 🌿',
     studioTitle: 'Credits to',
     studio: 'Phoenix Neumed',
     rightsReserved: 'All rights reserved.',
@@ -342,18 +355,29 @@ export const en = {
     subtitle: 'Go beyond Basic with the full challenge.',
     priceLine: 'One-time unlock — {{inr}} / {{usd}} / {{eur}}',
     unlockHint: 'Unlock once for {{inr}} / {{usd}} / {{eur}} (placeholder)',
+    friendCodeHint: 'Enter a friend code below to unlock',
+    onlineLockedHint: 'Premium — unlock with a friend code',
+    onlineLockedBody:
+      'Online play with friends is a premium feature. Enter your friend code below to unlock it — no account needed.',
+    twoPlayerLockedHint: 'Premium — unlock with purchase or friend code',
+    twoPlayerLockedBody:
+      'Two players on one device is a premium feature — all three levels (Easy, Medium and Hard) unlock together with a one-time purchase or a friend access code. No account needed.',
     cta: 'Unlock — coming soon',
     ctaNote: 'Purchases are not available yet. This unlock will be enabled in an upcoming update.',
     ownerGranted: 'Access granted by Phoenix Neumed',
     locked: 'Locked',
     infoTitle: 'Premium Access',
-    infoWhat: 'Premium unlocks the Medium and Hard challenge levels. Basic play, two-player on one device, and online play stay completely free.',
+    infoWhat: 'Premium unlocks the Medium and Hard single-player levels, two players on one device (all levels) and online play with friends (all levels). Only single-player Easy stays free.',
     infoOneTime: 'It is a single one-time unlock — no subscription.',
     infoPricing: 'Prices shown are indicative placeholders until purchases are enabled.',
     codeLabel: 'Have an access code?',
     codePlaceholder: 'Enter code',
     codeApply: 'Apply',
     codeInvalid: 'That code was not recognised.',
+    codeChecking: 'Checking…',
+    codeUsed: 'That code has already been used on another device.',
+    codeRevoked: 'That code is no longer active.',
+    codeNetwork: 'Could not reach the server. Please check your connection and try again.',
     codeAccepted: 'Premium unlocked — enjoy!',
   },
   musicBar: {

@@ -16,6 +16,7 @@ export function WaitingRoomScreen({ navigation, route }: RootStackScreenProps<'W
   const phase = useMultiplayerStore((s) => s.phase);
   const errorKey = useMultiplayerStore((s) => s.errorKey);
   const storeCode = useMultiplayerStore((s) => s.roomCode);
+  const difficulty = useMultiplayerStore((s) => s.difficulty);
   const setReady = useMultiplayerStore((s) => s.setReady);
   const leave = useMultiplayerStore((s) => s.leave);
 
@@ -40,12 +41,15 @@ export function WaitingRoomScreen({ navigation, route }: RootStackScreenProps<'W
     if (phase === 'playing') {
       navigation.replace('Gameplay', {
         mode: 'online',
+        // Host-chosen match level from the shared room document, so results
+        // and the scoreboard can reflect it on both devices.
+        difficulty: difficulty ?? 'medium',
         roomCode,
         player1Name: youName,
         player2Name: oppName,
       });
     }
-  }, [phase, navigation, roomCode, youName, oppName]);
+  }, [phase, navigation, roomCode, youName, oppName, difficulty]);
 
   const back = () => {
     leave();
@@ -77,7 +81,10 @@ export function WaitingRoomScreen({ navigation, route }: RootStackScreenProps<'W
           <AppText variant="h2" color={theme.colors.primaryLight} style={styles.code}>
             {roomCode}
           </AppText>
-          <Badge label={t('waitingRoom.players', { count: playerCount })} tone="neutral" />
+          <View style={styles.badgeCol}>
+            {difficulty ? <Badge label={t(`difficulty.${difficulty}`)} tone="gold" /> : null}
+            <Badge label={t('waitingRoom.players', { count: playerCount })} tone="neutral" />
+          </View>
         </View>
 
         <Card>
@@ -159,6 +166,11 @@ const styles = StyleSheet.create({
     paddingTop: theme.spacing.md,
   },
   codeRow: { alignItems: 'center', gap: theme.spacing.xs },
+  badgeCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
   code: { letterSpacing: 6 },
   divider: { marginVertical: theme.spacing.lg },
   status: { alignItems: 'center' },
