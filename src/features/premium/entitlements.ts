@@ -41,6 +41,17 @@ export const PREMIUM_PRICING = {
 } as const;
 
 /**
+ * PAYMENT LINK PLACEHOLDER.
+ * The owner will supply a hosted payment link (e.g. Razorpay Payment Link /
+ * UPI page). Paste it here and the "Buy" button on the premium lock card
+ * opens it in the browser automatically — no other code changes needed.
+ * While empty, the card shows the "coming soon" note instead of a broken
+ * link. After paying, the buyer receives an access code from the owner and
+ * redeems it in the same card (redemption already works end-to-end).
+ */
+export const PAYMENT_LINK_URL = '' as string;
+
+/**
  * OWNER/ADMIN OVERRIDE PLACEHOLDER.
  * Flip to `true` in a private/owner build to grant premium free of charge
  * (it is applied during hydration and persisted with source 'ownerGrant').

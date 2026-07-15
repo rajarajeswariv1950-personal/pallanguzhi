@@ -53,7 +53,11 @@ export function WaitingRoomScreen({ navigation, route }: RootStackScreenProps<'W
 
   const back = () => {
     leave();
-    navigation.navigate('OnlineLobby');
+    // popTo (v7) UNWINDS the stack to the existing lobby entry. navigate()
+    // would PUSH a second OnlineLobby on top of this screen, leaving the
+    // stale WaitingRoom underneath — its back arrow then bounced users
+    // straight back here in a loop.
+    navigation.popTo('OnlineLobby');
   };
 
   const hostName = hostRealName;
@@ -64,13 +68,19 @@ export function WaitingRoomScreen({ navigation, route }: RootStackScreenProps<'W
       title={t('waitingRoom.title')}
       onBack={back}
       footer={
-        <Button
-          label={iAmReady ? t('waitingRoom.ready') : t('waitingRoom.notReady')}
-          variant={iAmReady ? 'primary' : 'secondary'}
-          icon={iAmReady ? 'checkmark-circle' : 'ellipse-outline'}
-          disabled={!!errorKey}
-          onPress={() => setReady(!iAmReady)}
-        />
+        <View style={styles.footerCol}>
+          {/* One-line answer to "what does this button do?" right above it. */}
+          <AppText variant="caption" muted align="center">
+            {iAmReady ? t('waitingRoom.readyHintOn') : t('waitingRoom.readyHintOff')}
+          </AppText>
+          <Button
+            label={iAmReady ? t('waitingRoom.imReadyOn') : t('waitingRoom.imReadyOff')}
+            variant={iAmReady ? 'primary' : 'secondary'}
+            icon={iAmReady ? 'checkmark-circle' : 'ellipse-outline'}
+            disabled={!!errorKey}
+            onPress={() => setReady(!iAmReady)}
+          />
+        </View>
       }
     >
       <View style={styles.container}>
@@ -87,16 +97,33 @@ export function WaitingRoomScreen({ navigation, route }: RootStackScreenProps<'W
           </View>
         </View>
 
+        {/* Who created the room + how the match starts — no guessing. */}
+        <Card>
+          <AppText variant="overline" color={theme.colors.textMuted}>
+            {t('waitingRoom.howItWorksTitle')}
+          </AppText>
+          <AppText variant="body" muted style={styles.howBody}>
+            {t('waitingRoom.createdBy', { name: hostRealName })}
+          </AppText>
+          <AppText variant="body" muted style={styles.howBody}>
+            {guestPresent ? t('waitingRoom.howToStart') : t('waitingRoom.shareToStart')}
+          </AppText>
+        </Card>
+
         <Card>
           <PlayerSlot
-            label={t('waitingRoom.host')}
+            label={
+              youAreHost
+                ? `${t('waitingRoom.host')} · ${t('waitingRoom.roomCreator')} · ${t('common.you')}`
+                : `${t('waitingRoom.host')} · ${t('waitingRoom.roomCreator')}`
+            }
             name={hostName}
             ready={presence?.host.ready ?? false}
             connected={presence?.host.connected ?? true}
           />
           <Divider style={styles.divider} ornament />
           <PlayerSlot
-            label={t('waitingRoom.guest')}
+            label={!youAreHost ? `${t('waitingRoom.guest')} · ${t('common.you')}` : t('waitingRoom.guest')}
             name={guestName}
             ready={presence?.guest?.ready ?? false}
             connected={presence?.guest?.connected ?? false}
@@ -106,7 +133,15 @@ export function WaitingRoomScreen({ navigation, route }: RootStackScreenProps<'W
 
         <View style={styles.status}>
           <Badge
-            label={errorKey ? t(errorKey) : guestPresent ? t('net.tapReady') : t('net.waitingForOpponent')}
+            label={
+              errorKey
+                ? t(errorKey)
+                : !guestPresent
+                  ? t('net.waitingForOpponent')
+                  : iAmReady
+                    ? t('waitingRoom.waitingForOther')
+                    : t('net.tapReady')
+            }
             tone={errorKey ? 'danger' : guestPresent ? 'gold' : 'neutral'}
           />
         </View>
@@ -138,7 +173,7 @@ function PlayerSlot({
   const { t } = useAppTranslation();
   const tone = waiting || !connected ? 'neutral' : ready ? 'success' : 'warning';
   const badgeLabel = waiting
-    ? t('common.loading')
+    ? t('waitingRoom.seatOpen')
     : !connected
       ? t('net.reconnecting')
       : ready
@@ -166,6 +201,8 @@ const styles = StyleSheet.create({
     paddingTop: theme.spacing.md,
   },
   codeRow: { alignItems: 'center', gap: theme.spacing.xs },
+  footerCol: { gap: theme.spacing.sm },
+  howBody: { marginTop: theme.spacing.sm },
   badgeCol: {
     flexDirection: 'row',
     alignItems: 'center',

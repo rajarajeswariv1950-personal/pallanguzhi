@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, BackHandler, Platform, Alert } from 'react-native';
 import { BrandedScreen, BrandHero, Button, OptionCard, AppText, FadeSlideIn } from '@/components';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
 import { useProfileStore } from '@/store/profileStore';
@@ -8,6 +8,20 @@ import { theme } from '@/theme';
 export function HomeScreen({ navigation }: RootStackScreenProps<'Home'>) {
   const { t } = useAppTranslation();
   const name = useProfileStore((s) => s.name);
+
+  // Explicit way OUT of the app. Android supports a true programmatic exit;
+  // iOS forbids apps closing themselves (App Store rule), so there the
+  // dialog explains the swipe-up gesture instead of silently doing nothing.
+  const exitApp = () => {
+    if (Platform.OS === 'android') {
+      Alert.alert(t('home.exitTitle'), t('home.exitConfirm'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('home.exitApp'), style: 'destructive', onPress: () => BackHandler.exitApp() },
+      ]);
+    } else {
+      Alert.alert(t('home.exitTitle'), t('home.exitIosHint'), [{ text: t('common.confirm') }]);
+    }
+  };
 
   const menu: { icon: 'book' | 'settings-sharp' | 'person' | 'information-circle'; label: string; route: 'HowToPlay' | 'Settings' | 'Profile' | 'About' }[] = [
     { icon: 'book', label: t('home.howToPlay'), route: 'HowToPlay' },
@@ -41,6 +55,14 @@ export function HomeScreen({ navigation }: RootStackScreenProps<'Home'>) {
               <OptionCard icon={item.icon} title={item.label} onPress={() => navigation.navigate(item.route)} />
             </FadeSlideIn>
           ))}
+          <FadeSlideIn delay={200 + menu.length * 70}>
+            <OptionCard
+              icon="power"
+              title={t('home.exitApp')}
+              subtitle={Platform.OS === 'android' ? t('home.exitSubtitle') : t('home.exitIosSubtitle')}
+              onPress={exitApp}
+            />
+          </FadeSlideIn>
         </View>
       </View>
     </BrandedScreen>

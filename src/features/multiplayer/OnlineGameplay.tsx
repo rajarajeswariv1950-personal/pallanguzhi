@@ -1,15 +1,80 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { BrandedScreen, Button, AppText, Badge, StateMessage } from '@/components';
 import { GameBoard } from '@/features/game/components/GameBoard';
 import { Scoreboard } from '@/features/game/components/Scoreboard';
 import { MusicControlBar } from '@/features/game/components/MusicControlBar';
-import { legalMoves } from '@/features/game/engine';
+import { legalMoves, traceMove, type GameState, type MoveFrame } from '@/features/game/engine';
 import { useMultiplayerStore } from './store';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
 import { useProfileStore } from '@/store/profileStore';
+import { feedback, playSfx } from '@/services/feedback';
+import { MOVE_SPEED_MS, useSettingsStore } from '@/store/settingsStore';
 import type { RootStackScreenProps } from '@/navigation/types';
 import { theme } from '@/theme';
+
+/**
+ * Paced seed-by-seed replay of each online move at the user's chosen speed
+ * (Settings → Move speed) — BOTH the local player's move and the opponent's
+ * polled move animate from the previous board via the deterministic
+ * traceMove, always landing exactly on the authoritative server state.
+ */
+function useMoveReplay(gameState: GameState | null, lastMove: number) {
+  const [frame, setFrame] = useState<MoveFrame | null>(null);
+  const prevRef = useRef<GameState | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const prev = prevRef.current;
+    prevRef.current = gameState;
+    if (!gameState || !prev) return undefined;
+    const sameBoard =
+      prev.pits.join(',') === gameState.pits.join(',') &&
+      prev.stores[0] === gameState.stores[0] &&
+      prev.stores[1] === gameState.stores[1];
+    if (sameBoard) return undefined; // presence/ready churn — nothing to replay
+    // New round (rematch) or unknown move: snap without animating.
+    const frames = prev.status === 'playing' && lastMove >= 0 ? traceMove(prev, lastMove) : [];
+    const last = frames[frames.length - 1];
+    const landsCorrectly =
+      !!last &&
+      last.pits.join(',') === gameState.pits.join(',') &&
+      last.stores[0] === gameState.stores[0] &&
+      last.stores[1] === gameState.stores[1];
+    if (!landsCorrectly) {
+      setFrame(null);
+      return undefined;
+    }
+    if (timer.current) clearTimeout(timer.current);
+    let i = 0;
+    const step = () => {
+      if (i >= frames.length) {
+        setFrame(null);
+        return;
+      }
+      const f = frames[i];
+      i += 1;
+      setFrame(f);
+      if (f.kind === 'capture') feedback('capture', 'medium');
+      else if (f.kind === 'drop') playSfx('seed');
+      timer.current = setTimeout(step, MOVE_SPEED_MS[useSettingsStore.getState().moveSpeed]);
+    };
+    step();
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [gameState, lastMove]);
+
+  // Screen unmount: stop stepping.
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+
+  return frame;
+}
 
 export function OnlineGameplay({ navigation, route }: RootStackScreenProps<'Gameplay'>) {
   const { t } = useAppTranslation();
@@ -22,8 +87,12 @@ export function OnlineGameplay({ navigation, route }: RootStackScreenProps<'Game
   const phase = useMultiplayerStore((s) => s.phase);
   const errorKey = useMultiplayerStore((s) => s.errorKey);
   const opponentConnected = useMultiplayerStore((s) => s.opponentConnected);
+  const lastMove = useMultiplayerStore((s) => s.lastMove);
   const sendMove = useMultiplayerStore((s) => s.sendMove);
   const leave = useMultiplayerStore((s) => s.leave);
+
+  // Paced replay frame (null when the board is settled).
+  const frame = useMoveReplay(gameState, lastMove);
 
   // Prefer live presence names, then names passed from the waiting room, then
   // sensible fallbacks — so both real names show even after a reconnect.
@@ -37,9 +106,10 @@ export function OnlineGameplay({ navigation, route }: RootStackScreenProps<'Game
   const keepAlive = useRef(false);
   const navigated = useRef(false);
 
-  // Game over -> Results. Keep the session alive so rematch can resume.
+  // Game over -> Results (after the final move's replay finishes so the
+  // last capture is visible). Keep the session alive so rematch can resume.
   useEffect(() => {
-    if (gameState?.status === 'gameOver' && you !== null && !navigated.current) {
+    if (gameState?.status === 'gameOver' && you !== null && frame === null && !navigated.current) {
       navigated.current = true;
       keepAlive.current = true;
       const [s0, s1] = gameState.stores;
@@ -56,7 +126,7 @@ export function OnlineGameplay({ navigation, route }: RootStackScreenProps<'Game
         player2Score: oppScore,
       });
     }
-  }, [gameState, you, navigation, route.params.roomCode, youName, oppName]);
+  }, [gameState, you, frame, navigation, route.params.roomCode, youName, oppName]);
 
   // Leaving the match screen (other than to Results) ends the online session.
   useEffect(() => {
@@ -104,14 +174,18 @@ export function OnlineGameplay({ navigation, route }: RootStackScreenProps<'Game
     );
   }
 
+  const animating = frame !== null;
   const myTurn =
     gameState.current === you &&
     gameState.status === 'playing' &&
     status === 'connected' &&
-    opponentConnected;
+    opponentConnected &&
+    !animating;
   const legal = myTurn ? legalMoves(gameState) : [];
   const turnLabel = gameState.current === you ? t('gameplay.yourTurn') : t('gameplay.opponentTurn');
-  const oppStoreValue = gameState.stores[you === 0 ? 1 : 0];
+  const displayPits = frame ? frame.pits : gameState.pits;
+  const displayStores = frame ? frame.stores : gameState.stores;
+  const oppStoreValue = displayStores[you === 0 ? 1 : 0];
 
   return (
     <BrandedScreen
@@ -136,15 +210,15 @@ export function OnlineGameplay({ navigation, route }: RootStackScreenProps<'Game
 
         <Scoreboard
           leftName={youName}
-          leftScore={gameState.stores[you]}
+          leftScore={displayStores[you]}
           rightName={oppName}
           rightScore={oppStoreValue}
           activeSide={gameState.current === you ? 0 : 1}
         />
 
         <GameBoard
-          pits={gameState.pits}
-          stores={gameState.stores}
+          pits={displayPits}
+          stores={displayStores}
           current={gameState.current}
           legalPits={legal}
           interactive={myTurn}
@@ -152,11 +226,13 @@ export function OnlineGameplay({ navigation, route }: RootStackScreenProps<'Game
         />
 
         <AppText variant="caption" muted align="center" style={styles.hint}>
-          {myTurn
-            ? t('gameplay.selectPit')
-            : opponentConnected
-              ? t('gameplay.opponentTurn')
-              : t('errors.opponentLeft')}
+          {animating
+            ? t('gameplay.sowing')
+            : myTurn
+              ? t('gameplay.selectPit')
+              : opponentConnected
+                ? t('gameplay.opponentTurn')
+                : t('errors.opponentLeft')}
         </AppText>
       </View>
     </BrandedScreen>

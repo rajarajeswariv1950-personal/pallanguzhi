@@ -224,3 +224,89 @@ function finalizeRound(state: GameState): GameState {
   const winner: Winner = stores[0] > stores[1] ? 0 : stores[1] > stores[0] ? 1 : 'draw';
   return { ...state, pits, stores, status: 'gameOver', winner };
 }
+
+/** One visual step of a move, for paced board animation. */
+export interface MoveFrame {
+  /** Board after this step. */
+  pits: number[];
+  stores: [number, number];
+  /** What happened: a seed dropped, a capture, a new-lap scoop, or the end-of-round banking. */
+  kind: 'drop' | 'capture' | 'scoop' | 'bank';
+}
+
+/**
+ * Re-run a move step by step, returning one frame per seed drop / capture /
+ * lap scoop, ending with the exact post-move board. Pure and deterministic —
+ * the final frame ALWAYS equals `applyMove(state, index).state` board-wise
+ * (guaranteed by sharing the same rules; locked by unit tests), so the UI can
+ * animate through frames at a user-chosen speed and land on the authoritative
+ * state. Returns [] for illegal moves.
+ */
+export function traceMove(state: GameState, index: number): MoveFrame[] {
+  if (!isLegalMove(state, index)) return [];
+
+  const N = state.pits.length;
+  const pits = state.pits.slice();
+  const stores: [number, number] = [state.stores[0], state.stores[1]];
+  const player = state.current;
+  const frames: MoveFrame[] = [];
+  const snap = (kind: MoveFrame['kind']) =>
+    frames.push({ pits: pits.slice(), stores: [stores[0], stores[1]], kind });
+
+  let hand = pits[index];
+  pits[index] = 0;
+  snap('scoop');
+  let pos = index;
+  let drops = 0;
+
+  for (;;) {
+    while (hand > 0) {
+      pos = (pos + 1) % N;
+      pits[pos] += 1;
+      hand -= 1;
+      drops += 1;
+      snap('drop');
+      if (state.config.captureOnFour && pits[pos] === 4) {
+        stores[player] += 4;
+        pits[pos] = 0;
+        snap('capture');
+      }
+      if (drops > MAX_DROPS) {
+        hand = 0;
+        break;
+      }
+    }
+    const next = (pos + 1) % N;
+    if (pits[next] > 0 && drops <= MAX_DROPS) {
+      hand = pits[next];
+      pits[next] = 0;
+      snap('scoop');
+      pos = next;
+    } else {
+      const after = (next + 1) % N;
+      if (pits[next] === 0 && pits[after] > 0) {
+        stores[player] += pits[after];
+        pits[after] = 0;
+        snap('capture');
+      }
+      break;
+    }
+  }
+
+  // If the move ends the round, applyMove banks each side's remaining seeds
+  // (finalizeRound); mirror that as a final frame so the animation lands on
+  // the authoritative post-move board.
+  const opponentPits = ownPitIndices(otherPlayer(player), state.config.pitsPerRow);
+  const roundOver = opponentPits.every((i) => pits[i] === 0);
+  if (roundOver) {
+    ([0, 1] as Player[]).forEach((p) => {
+      ownPitIndices(p, state.config.pitsPerRow).forEach((i) => {
+        stores[p] += pits[i];
+        pits[i] = 0;
+      });
+    });
+    snap('bank');
+  }
+
+  return frames;
+}

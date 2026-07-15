@@ -1,13 +1,16 @@
 import { View, StyleSheet, Switch } from 'react-native';
-import { BrandedScreen, Card, OptionCard, AppText, Icon, Divider } from '@/components';
+import { BrandedScreen, Card, OptionCard, AppText, Icon, Divider, Button } from '@/components';
 import type { IconName } from '@/components';
 import { PressableScale } from '@/components/anim/PressableScale';
+import { PremiumManageCard } from '@/features/premium/PremiumManageCard';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
-import { useSettingsStore, VOLUME_STEP } from '@/store/settingsStore';
+import { useSettingsStore, VOLUME_STEP, type MoveSpeed } from '@/store/settingsStore';
 import { tapFeedback } from '@/services/feedback';
 import { APP_VERSION } from '@/constants/brand';
 import type { RootStackScreenProps } from '@/navigation/types';
 import { theme } from '@/theme';
+
+const MOVE_SPEEDS: readonly MoveSpeed[] = ['relaxed', 'normal', 'fast'];
 
 export function SettingsScreen({ navigation }: RootStackScreenProps<'Settings'>) {
   const { t } = useAppTranslation();
@@ -43,8 +46,17 @@ export function SettingsScreen({ navigation }: RootStackScreenProps<'Settings'>)
         />
 
         <SectionLabel>{t('settings.gameplaySection')}</SectionLabel>
+        {/* User-controlled pace of seed animation — every mode and level. */}
+        <Card>
+          <MoveSpeedRow />
+        </Card>
         <OptionCard icon="book" title={t('settings.replayTutorial')} onPress={() => navigation.navigate('HowToPlay')} />
         <OptionCard icon="document-text" title={t('settings.viewRules')} onPress={() => navigation.navigate('HowToPlay')} />
+
+        {/* Premium management — change the unlock code (device handover) or
+            remove the unlock from this device entirely. */}
+        <SectionLabel>{t('premiumManage.section')}</SectionLabel>
+        <PremiumManageCard />
 
         {/* Merged subsection: About information now lives inside Credits. */}
         <SectionLabel>{t('settings.credits')}</SectionLabel>
@@ -99,8 +111,47 @@ function SettingRow({
   );
 }
 
-/** Mute is the Music toggle above; this adds friendly volume down / up steppers. */
-function MusicVolumeRow() {
+/**
+ * Move speed — how fast seeds visibly travel during sowing, in EVERY game
+ * mode and level (single player incl. AI, two players, online). 'relaxed'
+ * is the default so each sown seed is easy to follow.
+ */
+function MoveSpeedRow() {
+  const { t } = useAppTranslation();
+  const moveSpeed = useSettingsStore((s) => s.moveSpeed);
+  const setMoveSpeed = useSettingsStore((s) => s.setMoveSpeed);
+
+  return (
+    <View>
+      <View style={styles.settingRow}>
+        <Icon name="speedometer" size={22} color={theme.colors.primaryLight} />
+        <AppText variant="title" style={styles.settingLabel}>
+          {t('settings.moveSpeed')}
+        </AppText>
+      </View>
+      <View style={styles.speedRow}>
+        {MOVE_SPEEDS.map((s) => (
+          <Button
+            key={s}
+            label={t(`settings.moveSpeed_${s}`)}
+            size="md"
+            fullWidth={false}
+            variant={moveSpeed === s ? 'primary' : 'secondary'}
+            onPress={() => {
+              tapFeedback();
+              setMoveSpeed(s);
+            }}
+          />
+        ))}
+      </View>
+      <AppText variant="small" muted style={styles.speedHint}>
+        {t(`settings.moveSpeedDesc_${moveSpeed}`)}
+      </AppText>
+    </View>
+  );
+}
+
+/** Mute is the Music toggle above; this adds friendly volume down / up steppers. */function MusicVolumeRow() {
   const { t } = useAppTranslation();
   const music = useSettingsStore((s) => s.music);
   const musicVolume = useSettingsStore((s) => s.musicVolume);
@@ -185,4 +236,10 @@ const styles = StyleSheet.create({
   stepValue: { minWidth: 54 },
   rowDivider: { marginVertical: theme.spacing.sm },
   version: { marginTop: theme.spacing.lg },
+  speedRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+  },
+  speedHint: { marginTop: theme.spacing.sm },
 });

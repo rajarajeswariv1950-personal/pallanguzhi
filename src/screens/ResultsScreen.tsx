@@ -85,13 +85,20 @@ export function ResultsScreen({ navigation, route }: RootStackScreenProps<'Resul
   const rematchYou = useMultiplayerStore((s) => s.rematchYou);
   const rematchOpponent = useMultiplayerStore((s) => s.rematchOpponent);
   const mpError = useMultiplayerStore((s) => s.errorKey);
+  const mpDifficulty = useMultiplayerStore((s) => s.difficulty);
 
   // Online rematch: when the server restarts the match, return to the board.
   useEffect(() => {
     if (isOnline && mpPhase === 'playing') {
-      navigation.replace('Gameplay', { mode: 'online', roomCode, player1Name, player2Name });
+      navigation.replace('Gameplay', {
+        mode: 'online',
+        difficulty: mpDifficulty ?? undefined,
+        roomCode,
+        player1Name,
+        player2Name,
+      });
     }
-  }, [isOnline, mpPhase, navigation, roomCode, player1Name, player2Name]);
+  }, [isOnline, mpPhase, navigation, roomCode, player1Name, player2Name, mpDifficulty]);
 
   const rematch = () =>
     navigation.replace('Gameplay', { mode, difficulty, roomCode, player1Name, player2Name });

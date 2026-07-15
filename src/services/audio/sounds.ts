@@ -10,9 +10,10 @@ export const sfxSources: Record<SfxName, number> = {
 };
 
 /**
- * Background music — "Wisdom Light in Leaves", the gameplay melody. Starts
- * when a match begins (any mode), loops at a low volume via the single shared
- * music player in AudioService (never more than one instance), and stops when
- * the player leaves the board.
+ * Background music — the owner-supplied Indian classical instrumental fusion
+ * track. Starts automatically ONLY when a match begins (any mode/level; the
+ * gameplay screen flips `setGameplayMusicActive(true)` on mount), loops at a
+ * low volume via the single shared music player in AudioService (never more
+ * than one instance), and stops when the player leaves the board.
  */
-export const ambientSource: number = require('../../../assets/audio/wisdom-light-in-leaves.mp3');
+export const ambientSource: number = require('../../../assets/audio/classical-fusion-peace.mp3');

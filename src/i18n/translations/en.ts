@@ -55,6 +55,13 @@ export const en = {
     about: 'About',
     welcome: 'Welcome',
     welcomeName: 'Welcome, {{name}}',
+    exitApp: 'Exit App',
+    exitTitle: 'Exit the app?',
+    exitSubtitle: 'Close the game and return to your device',
+    exitConfirm: 'The app will close. Your settings and unlocks are saved.',
+    exitIosSubtitle: 'How to close the app on iPhone',
+    exitIosHint:
+      'iPhone apps close from the App Switcher: swipe up from the bottom of the screen and pause, then swipe this app upward. Apple does not allow apps to close themselves. Your settings and unlocks are saved.',
   },
   howToPlay: {
     title: 'How to Play',
@@ -214,6 +221,18 @@ export const en = {
     startGame: 'Start Game',
     leave: 'Leave Room',
     players: 'Players {{count}} / 2',
+    howItWorksTitle: 'How this works',
+    roomCreator: 'created this room',
+    createdBy: 'This room was created by {{name}}.',
+    shareToStart: 'Share the room code with one friend. Once they join, you will both see each other here.',
+    howToStart:
+      "Both players tap the \u201cI'm Ready\u201d button below. The match starts automatically the moment both of you are ready \u2014 nobody needs to do anything else.",
+    imReadyOff: "I'm Ready \u2014 tap when set",
+    imReadyOn: 'Ready \u2713 \u2014 tap to cancel',
+    readyHintOff: 'Tap below to tell your opponent you are ready to start.',
+    readyHintOn: 'You are marked ready. The match starts when your opponent is ready too.',
+    waitingForOther: 'Waiting for the other player to tap Ready\u2026',
+    seatOpen: 'Seat open',
   },
   gameplay: {
     yourTurn: 'Your turn',
@@ -224,6 +243,7 @@ export const en = {
     round: 'Round {{number}}',
     pause: 'Pause',
     selectPit: 'Tap one of your pits to sow',
+    sowing: 'Sowing seeds\u2026',
     pitLabel: 'Pit, {{count}} seeds',
     storeLabel: 'Store, {{count}} seeds',
   },
@@ -264,6 +284,13 @@ export const en = {
     volumeUp: 'Increase volume',
     muted: 'Muted',
     gameplaySection: 'Gameplay',
+    moveSpeed: 'Move Speed',
+    moveSpeed_relaxed: 'Relaxed',
+    moveSpeed_normal: 'Normal',
+    moveSpeed_fast: 'Fast',
+    moveSpeedDesc_relaxed: 'Each sown seed is easy to follow — great for learning.',
+    moveSpeedDesc_normal: 'A steady pace with every seed still visible.',
+    moveSpeedDesc_fast: 'Quick moves for experienced players.',
     replayTutorial: 'Replay Tutorial',
     viewRules: 'View Rules',
     aboutSection: 'About',
@@ -314,6 +341,11 @@ export const en = {
     studio: 'Phoenix Neumed',
     rightsReserved: 'All rights reserved.',
     version: 'Version',
+    pricingTitle: 'Premium unlock — cost',
+    pricingBody:
+      'The game is free to try with single-player Easy. A single one-time payment unlocks everything else: the Medium and Hard single-player levels, Two Players on one device (all levels), and Online Multiplayer with friends (all levels). No subscription, no ads, no in-app currencies — pay once, play forever on your device.',
+    pricingHow:
+      'You can also unlock with a friend access code if you received one from Phoenix Neumed. Unlocking happens on the Premium card shown on any locked screen. Displayed prices are indicative until the payment gateway goes live.',
   },
   net: {
     connecting: 'Connecting\u2026',
@@ -379,6 +411,26 @@ export const en = {
     codeRevoked: 'That code is no longer active.',
     codeNetwork: 'Could not reach the server. Please check your connection and try again.',
     codeAccepted: 'Premium unlocked — enjoy!',
+    buyNow: 'Buy now — one-time unlock',
+  },
+  premiumManage: {
+    section: 'Premium',
+    title: 'Premium Access',
+    unlocked: 'Unlocked',
+    status: 'This device is unlocked via {{source}}.',
+    sourcePurchase: 'a one-time purchase',
+    sourceFriendCode: 'an access code',
+    sourceOwner: 'an owner grant',
+    lockedHint:
+      'This device is not unlocked yet. Open any locked mode (Two Players or Online) to purchase or enter an access code.',
+    changeCode: 'Change access code',
+    changeHint:
+      'Handing this device to someone else? Enter the new access code that should own this unlock (for example, swap your owner code for a friend code). The current unlock is replaced only after the new code is accepted.',
+    changeAccepted: 'Code changed — this device now uses the new access code.',
+    relockTitle: 'Remove unlock from this device?',
+    relockConfirm:
+      'Premium will be locked again on this device. The next person can unlock with their own purchase or access code. Your settings are kept.',
+    relockAction: 'Remove unlock',
   },
   musicBar: {
     hint: 'A premium motivational soundtrack accompanies your match. Use the controls below to play or pause it anytime.',

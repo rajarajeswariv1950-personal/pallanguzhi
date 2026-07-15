@@ -40,6 +40,8 @@ interface MpState {
   gameState: GameState | null;
   /** Host-chosen match level, mirrored from the shared room document. */
   difficulty: Difficulty | null;
+  /** Pit index of the most recent move (-1 = none), for paced replay. */
+  lastMove: number;
   rematchYou: boolean;
   rematchOpponent: boolean;
   errorKey: MpErrorKey | null;
@@ -64,6 +66,7 @@ const INITIAL = {
   opponentConnected: false,
   gameState: null,
   difficulty: null as Difficulty | null,
+  lastMove: -1,
   rematchYou: false,
   rematchOpponent: false,
   errorKey: null,
@@ -92,6 +95,13 @@ interface RoomDoc {
   difficulty: Difficulty;
   phase: 'waiting' | 'playing' | 'gameOver';
   game: GameState | null;
+  /**
+   * Pit index of the most recent move (-1 = none yet). Lets BOTH clients
+   * replay the move as a paced seed-by-seed animation from their previous
+   * board (engine traceMove is deterministic, so the animation always lands
+   * exactly on `game`). Older documents without the field simply skip it.
+   */
+  lastMove: number;
   rematch: [boolean, boolean];
   /** -1 = nobody left; 0/1 = that player left the room. */
   leftBy: -1 | 0 | 1;
@@ -149,6 +159,7 @@ function newDoc(hostName: string, difficulty: Difficulty = 'medium'): RoomDoc {
     difficulty,
     phase: 'waiting',
     game: null,
+    lastMove: -1,
     rematch: [false, false],
     leftBy: -1,
   };
@@ -181,11 +192,10 @@ function applyDocToStore() {
   const prev = get().gameState;
   const next = doc.game;
   // Same audio/haptic cues as before when a new board state arrives.
-  if (next && prev && JSON.stringify(next) !== JSON.stringify(prev)) {
-    if (next.status === 'gameOver') feedback('win', 'success');
-    else if (next.stores[0] > prev.stores[0] || next.stores[1] > prev.stores[1])
-      feedback('capture', 'medium');
-    else playSfx('seed');
+  // (The seed-by-seed sounds during the paced replay come from the gameplay
+  //  screen's animator; this only cues game-over.)
+  if (next && prev && next.status === 'gameOver' && prev.status !== 'gameOver') {
+    feedback('win', 'success');
   }
 
   set({
@@ -193,6 +203,7 @@ function applyDocToStore() {
     opponentConnected: you === 0 ? doc.guestJoined : true,
     gameState: next,
     difficulty: docDifficulty(doc),
+    lastMove: typeof doc.lastMove === 'number' ? doc.lastMove : -1,
     phase: doc.phase,
     status: 'connected',
     rematchYou: doc.rematch[you],
@@ -250,11 +261,13 @@ function maybeStart(d: RoomDoc): boolean {
   if (d.phase === 'waiting' && d.guestJoined && d.hostReady && d.guestReady) {
     d.phase = 'playing';
     d.game = createInitialState(rulesForTwoPlayer(docDifficulty(d)));
+    d.lastMove = -1;
     return true;
   }
   if (d.phase === 'gameOver' && d.rematch[0] && d.rematch[1]) {
     d.phase = 'playing';
     d.game = createInitialState(rulesForTwoPlayer(docDifficulty(d)));
+    d.lastMove = -1;
     d.rematch = [false, false];
     return true;
   }
@@ -407,7 +420,12 @@ export const useMultiplayerStore = create<MpState>((set, get) => ({
       return;
     }
     const next = result.state;
-    doc = { ...doc, game: next, phase: next.status === 'gameOver' ? 'gameOver' : 'playing' };
+    doc = {
+      ...doc,
+      game: next,
+      lastMove: pit,
+      phase: next.status === 'gameOver' ? 'gameOver' : 'playing',
+    };
     pushDoc();
   },
   requestRematch: () => {

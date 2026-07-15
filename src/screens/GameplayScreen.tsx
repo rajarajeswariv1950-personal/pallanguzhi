@@ -72,11 +72,12 @@ function OfflineGameplay({ navigation, route }: RootStackScreenProps<'Gameplay'>
     [mode, difficulty, p0Name, p1Name, navigation],
   );
 
-  const { state, legalPits, thinking, isHumanTurn, play } = useGameController({
-    mode,
-    difficulty,
-    onGameOver: handleGameOver,
-  });
+  const { state, displayPits, displayStores, animating, legalPits, thinking, isHumanTurn, play } =
+    useGameController({
+      mode,
+      difficulty,
+      onGameOver: handleGameOver,
+    });
 
   const openPause = () => navigation.navigate('PauseModal', { online: mode === 'online' });
 
@@ -111,15 +112,15 @@ function OfflineGameplay({ navigation, route }: RootStackScreenProps<'Gameplay'>
 
         <Scoreboard
           leftName={p0Name}
-          leftScore={state.stores[0]}
+          leftScore={displayStores[0]}
           rightName={p1Name}
-          rightScore={state.stores[1]}
+          rightScore={displayStores[1]}
           activeSide={state.current === 0 ? 0 : 1}
         />
 
         <GameBoard
-          pits={state.pits}
-          stores={state.stores}
+          pits={displayPits}
+          stores={displayStores}
           current={state.current as Player}
           legalPits={legalPits}
           interactive={isHumanTurn}
@@ -127,7 +128,11 @@ function OfflineGameplay({ navigation, route }: RootStackScreenProps<'Gameplay'>
         />
 
         <AppText variant="caption" muted align="center" style={styles.hint}>
-          {isHumanTurn ? t('gameplay.selectPit') : t('difficulty.aiThinking')}
+          {animating
+            ? t('gameplay.sowing')
+            : isHumanTurn
+              ? t('gameplay.selectPit')
+              : t('difficulty.aiThinking')}
         </AppText>
       </View>
     </BrandedScreen>

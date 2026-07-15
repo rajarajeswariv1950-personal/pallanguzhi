@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 import { AppText, Badge, Button, Card, Divider, Icon, Input } from '@/components';
-import { PREMIUM_PRICING } from './entitlements';
+import { PAYMENT_LINK_URL, PREMIUM_PRICING } from './entitlements';
 import { useEntitlementStore } from '@/store/entitlementStore';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
 import { feedback, haptic } from '@/services/feedback';
@@ -60,11 +60,20 @@ export function PremiumLockCard() {
         {t('premium.priceLine', PREMIUM_PRICING)}
       </AppText>
 
+      {/* Buy button: opens the owner's hosted payment link when configured
+          (PAYMENT_LINK_URL in entitlements.ts — currently a placeholder);
+          until then it explains that purchase is coming soon. */}
       <Button
-        label={t('premium.cta')}
+        label={PAYMENT_LINK_URL ? t('premium.buyNow') : t('premium.cta')}
         icon="lock-open"
         variant="secondary"
-        onPress={() => setShowNote(true)}
+        onPress={() => {
+          if (PAYMENT_LINK_URL) {
+            void Linking.openURL(PAYMENT_LINK_URL).catch(() => setShowNote(true));
+          } else {
+            setShowNote(true);
+          }
+        }}
       />
       {showNote ? (
         <AppText variant="small" muted align="center" style={styles.note}>

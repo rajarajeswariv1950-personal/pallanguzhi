@@ -2,6 +2,7 @@ import { View, StyleSheet, Image } from 'react-native';
 import { BrandedScreen, BrandHero, Card, AppText } from '@/components';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
 import { APP_VERSION, brandAssets } from '@/constants/brand';
+import { PREMIUM_PRICING } from '@/features/premium/entitlements';
 import type { RootStackScreenProps } from '@/navigation/types';
 import { theme } from '@/theme';
 
@@ -53,6 +54,22 @@ export function AboutScreen(_props: RootStackScreenProps<'About'>) {
               </View>
             ))}
           </View>
+        </Card>
+
+        {/* Premium unlock cost — one-time payment, transparent up front. */}
+        <Card>
+          <AppText variant="overline" color={theme.colors.textMuted}>
+            {t('about.pricingTitle')}
+          </AppText>
+          <AppText variant="h3" color={theme.colors.primaryLight} style={styles.spacer}>
+            {t('premium.priceLine', PREMIUM_PRICING)}
+          </AppText>
+          <AppText variant="body" muted style={styles.paragraph}>
+            {t('about.pricingBody')}
+          </AppText>
+          <AppText variant="small" muted style={styles.paragraph}>
+            {t('about.pricingHow')}
+          </AppText>
         </Card>
 
         {/* A Note on Tradition — the game's cultural heart (i18n en/ta). */}
