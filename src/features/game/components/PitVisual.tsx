@@ -206,8 +206,20 @@ export function PitFace({
       {highlight ? <Animated.View pointerEvents="none" style={[styles.glowRing, pulseStyle]} /> : null}
 
       {showCount && count > 0 ? (
-        <View pointerEvents="none" style={styles.countChip}>
-          <AppText style={styles.countText} numberOfLines={1}>
+        // Deterministic chip sizing: width follows digit count and the text
+        // never scales with the system font, so the number always renders
+        // whole — no wrapping (older Android bug) and no "…" truncation
+        // (Android font-scaling bug). The seeds themselves remain the
+        // primary count cue; this badge is the exact readout.
+        <View
+          pointerEvents="none"
+          style={[styles.countChip, count > 9 ? styles.countChipWide : null]}
+        >
+          <AppText
+            style={[styles.countText, count > 9 ? styles.countTextTwoDigit : null]}
+            numberOfLines={1}
+            allowFontScaling={false}
+          >
             {count}
           </AppText>
         </View>
@@ -284,18 +296,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -3,
     alignSelf: 'center',
-    minWidth: 22,
+    width: 22,
     height: 17,
-    paddingHorizontal: 5,
     borderRadius: theme.radii.pill,
     backgroundColor: 'rgba(8,26,24,0.94)',
     borderWidth: 1,
     borderColor: 'rgba(228,193,115,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
-    // Two-digit counts must widen the chip, never wrap the digits
-    // (Android renders wrapped digits stacked/distorted otherwise).
-    flexDirection: 'row',
+    overflow: 'visible',
+  },
+  // Two digits get a deterministically wider chip — no measurement, no
+  // ellipsis, works identically on Android/iOS/web.
+  countChipWide: {
+    width: 30,
   },
   countText: {
     fontSize: 11,
@@ -305,5 +319,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     // Android adds asymmetric font padding inside tight chips.
     includeFontPadding: false,
+  },
+  countTextTwoDigit: {
+    fontSize: 10,
+    letterSpacing: -0.2,
   },
 });

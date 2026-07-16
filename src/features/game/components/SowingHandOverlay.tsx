@@ -4,8 +4,10 @@ import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withSequence,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import Svg, { Defs, Ellipse, LinearGradient, Path, Stop } from 'react-native-svg';
 import type { MoveFrame, Player } from '@/features/game/engine';
@@ -20,29 +22,30 @@ import { MOVE_SPEED_MS, useSettingsStore } from '@/store/settingsStore';
 export const SOWING_HAND_ENABLED = true;
 
 /**
- * Sowing-hand overlay — realistic SVG hand with articulated poses.
+ * Sowing-hand overlay v3 — articulated realistic hand.
  *
- * Two anatomical silhouettes of the back of a hand (drawn as smooth bezier
- * paths with a warm skin gradient, nails and knuckle creases) are
- * cross-faded to animate the gesture:
- *   OPEN  — fingers extended: scooping into a pit / releasing shells.
- *   FIST  — loose carrying fist with the thumb wrapped across.
- * The shells still in the hand (`frame.hand` from the engine trace) sit on
- * the back of the fist as tiny cowrie images in the same sunflower packing
- * the pits use, so the player can read exactly how many seeds remain. One
- * ivory shell slips from the hand into each pit on every drop.
+ * Realism approach (within Expo/react-native-svg, no raster assets):
+ *  - EACH FINGER IS ITS OWN ANIMATED ELEMENT. Fingers fold with staggered
+ *    timing — pinky leads, index trails on a close; reverse on an open —
+ *    which is how a real hand closes. The fold is a knuckle-anchored
+ *    scale + counter-rotation, and a curled-knuckle layer fades in as the
+ *    fingers disappear into the fist.
+ *  - NO CARTOON OUTLINES. All shapes are gradient-shaded (light radial
+ *    top-left → shaded ulnar edge) with at most a whisper-thin deep-skin
+ *    edge; the wrist fades out through an alpha gradient instead of
+ *    ending in a cut line.
+ *  - ORGANIC TRAVEL. The hand leans a few degrees into its direction of
+ *    motion and rides slightly higher mid-glide.
+ *  - The shells still held (`frame.hand`) sit on the back of the fist as
+ *    mini cowrie images (same sunflower packing as the pits) and shrink
+ *    shell-by-shell as sowing progresses; one ivory shell slips out of
+ *    the fingers into each pit per drop.
  *
- * Motion architecture (unchanged from the stabilized version):
- *  - Owns NO clock: reacts to the controller's `frame` prop; the frame
- *    timer remains the single timing authority.
- *  - HARD disappearance: renders null when there is no frame, no acting
- *    pit, or no measured center — structural, never fade-dependent.
- *  - Fresh state per move: re-seeds position on each move's first frame.
- *
- * v1 simplifications (documented):
- *  - 'capture' frames: the hand sweeps open over the captured pit; seeds
- *    do not fly to the store (the store's bump animation signals the gain).
- *  - 'bank' frames: whole-side sweep → no acting pit → hand unmounts.
+ * Motion architecture (unchanged):
+ *  - Owns NO clock — reacts to the controller's `frame` prop only.
+ *  - HARD disappearance: renders null with no frame / no acting pit / no
+ *    measured center. Structural, never fade-dependent.
+ *  - Fresh state per move; capture = open sweep; bank = unmount.
  */
 export function SowingHandOverlay({
   frame,
@@ -63,11 +66,17 @@ export function SowingHandOverlay({
   const y = useSharedValue(0);
   const lift = useSharedValue(1);
   const appear = useSharedValue(0);
-  /** 0 = open hand, 1 = closed carrying fist. */
+  const lean = useSharedValue(0);
+  /** Master pose 0 = open, 1 = fist (drives knuckle layer + held shells). */
   const curl = useSharedValue(0);
+  /** Per-finger fold, index → pinky. Staggered around the master pose. */
+  const foldIndex = useSharedValue(0);
+  const foldMiddle = useSharedValue(0);
+  const foldRing = useSharedValue(0);
+  const foldPinky = useSharedValue(0);
+  const foldThumb = useSharedValue(0);
   /** Falling-shell progress: 0 = leaving the hand, 1 = landed (gone). */
   const release = useSharedValue(1);
-  // Whether the hand was active on the previous frame (glide vs materialize).
   const engaged = useSharedValue(false);
 
   useEffect(() => {
@@ -77,39 +86,76 @@ export function SowingHandOverlay({
     }
     const speed = MOVE_SPEED_MS[useSettingsStore.getState().moveSpeed];
     const travel = Math.min(speed * 0.7, 300);
+    // Natural close: pinky → ring → middle → index; open reverses.
+    const folds = [foldIndex, foldMiddle, foldRing, foldPinky];
+    const gap = Math.min(speed * 0.08, 34);
+    const ease = Easing.out(Easing.cubic);
+
+    const closeHand = (duration: number) => {
+      curl.value = withTiming(1, { duration, easing: ease });
+      folds.forEach((sv, i) => {
+        sv.value = withDelay((3 - i) * gap, withTiming(1, { duration, easing: ease }));
+      });
+      foldThumb.value = withDelay(2 * gap, withTiming(1, { duration, easing: ease }));
+    };
+    const openHand = (target: number, duration: number) => {
+      curl.value = withTiming(target, { duration, easing: ease });
+      folds.forEach((sv, i) => {
+        sv.value = withDelay(i * gap, withTiming(target, { duration, easing: ease }));
+      });
+      foldThumb.value = withTiming(target, { duration, easing: ease });
+    };
 
     if (!engaged.value) {
       // First frame of a move: the open hand appears over the pit and
-      // closes into a carrying fist while lifting off the board.
+      // closes finger-by-finger over the shells while lifting off.
       engaged.value = true;
       x.value = center.x;
       y.value = center.y;
+      lean.value = 0;
       release.value = 1;
       appear.value = 0;
       appear.value = withTiming(1, { duration: Math.min(speed * 0.5, 180) });
       curl.value = 0;
-      curl.value = withTiming(1, {
-        duration: Math.min(speed * 0.7, 300),
-        easing: Easing.out(Easing.cubic),
-      });
+      folds.forEach((sv) => (sv.value = 0));
+      foldThumb.value = 0;
+      closeHand(Math.min(speed * 0.7, 300));
       lift.value = withSequence(
         withTiming(1.22, { duration: Math.min(speed * 0.4, 180), easing: Easing.out(Easing.quad) }),
-        // Stays slightly lifted while carrying — reads as "above the board".
         withTiming(1.06, { duration: Math.min(speed * 0.4, 180), easing: Easing.out(Easing.quad) }),
       );
       return;
     }
 
-    // Glide to the acted-on pit.
+    // Lean into the direction of travel, then settle upright.
+    const dx = center.x - x.value;
+    const tilt = Math.max(-7, Math.min(7, dx * 0.08));
+    lean.value = withSequence(
+      withTiming(tilt, { duration: travel * 0.4, easing: Easing.out(Easing.quad) }),
+      withTiming(0, { duration: travel * 0.6, easing: Easing.out(Easing.quad) }),
+    );
     x.value = withTiming(center.x, { duration: travel, easing: Easing.inOut(Easing.quad) });
     y.value = withTiming(center.y, { duration: travel, easing: Easing.inOut(Easing.quad) });
 
     if (frame.kind === 'drop') {
-      // The fist relaxes toward open just enough to let one shell slip
-      // out over the pit, then closes again; the hand dips with the release.
+      // Fingers relax halfway to let one shell slip out, then re-close.
+      const half = travel * 0.5;
       curl.value = withSequence(
-        withTiming(0.45, { duration: travel * 0.5, easing: Easing.out(Easing.quad) }),
-        withTiming(1, { duration: travel * 0.5, easing: Easing.out(Easing.quad) }),
+        withTiming(0.5, { duration: half, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: half, easing: ease }),
+      );
+      folds.forEach((sv, i) => {
+        sv.value = withDelay(
+          i * (gap * 0.5),
+          withSequence(
+            withTiming(0.45, { duration: half, easing: Easing.out(Easing.quad) }),
+            withTiming(1, { duration: half, easing: ease }),
+          ),
+        );
+      });
+      foldThumb.value = withSequence(
+        withTiming(0.6, { duration: half, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: half, easing: ease }),
       );
       release.value = 0;
       release.value = withTiming(1, { duration: travel, easing: Easing.in(Easing.quad) });
@@ -118,61 +164,78 @@ export function SowingHandOverlay({
         withTiming(1.06, { duration: travel * 0.45, easing: Easing.out(Easing.quad) }),
       );
     } else if (frame.kind === 'scoop') {
-      // New lap: the hand opens on approach and grabs the pit's shells.
-      curl.value = withSequence(
-        withTiming(0.1, { duration: travel * 0.5, easing: Easing.out(Easing.quad) }),
-        withTiming(1, { duration: travel * 0.5, easing: Easing.out(Easing.cubic) }),
+      // New lap: open on approach, grab finger-by-finger.
+      openHand(0.08, travel * 0.5);
+      curl.value = withDelay(travel * 0.5, withTiming(1, { duration: travel * 0.5, easing: ease }));
+      folds.forEach((sv, i) => {
+        sv.value = withDelay(
+          travel * 0.5 + (3 - i) * gap,
+          withTiming(1, { duration: travel * 0.5, easing: ease }),
+        );
+      });
+      foldThumb.value = withDelay(
+        travel * 0.5,
+        withTiming(1, { duration: travel * 0.5, easing: ease }),
       );
       lift.value = withSequence(
         withTiming(1.2, { duration: travel * 0.55, easing: Easing.out(Easing.quad) }),
         withTiming(1.06, { duration: travel * 0.45, easing: Easing.out(Easing.quad) }),
       );
     } else {
-      // Capture: the hand sweeps fully open over the claimed pit.
-      curl.value = withTiming(0.05, { duration: travel * 0.7, easing: Easing.out(Easing.cubic) });
+      // Capture: sweep fully open over the claimed pit.
+      openHand(0.02, travel * 0.8);
       lift.value = withSequence(
         withTiming(1.16, { duration: travel * 0.55, easing: Easing.out(Easing.quad) }),
         withTiming(1.04, { duration: travel * 0.45, easing: Easing.out(Easing.quad) }),
       );
     }
-  }, [frame, center, active, engaged, x, y, appear, lift, curl, release]);
+  }, [
+    frame, center, active, engaged, x, y, appear, lift, lean, curl,
+    foldIndex, foldMiddle, foldRing, foldPinky, foldThumb, release,
+  ]);
 
   const handStyle = useAnimatedStyle(() => ({
     opacity: appear.value,
     transform: [
       { translateX: x.value - HAND_W / 2 },
       // Anchor the knuckle area (not the geometric center) over the pit.
-      { translateY: y.value - HAND_H * 0.42 },
+      { translateY: y.value - HAND_H * 0.4 },
       { scale: lift.value },
-      // Player 1 reaches in from the top row: mirror the whole hand.
-      { rotate: player === 1 ? '180deg' : '0deg' },
+      { rotate: `${(player === 1 ? 180 : 0) + lean.value}deg` },
     ],
   }));
 
-  // Contact shadow: grows softer/larger as the hand lifts higher.
+  // Contact shadow: softer and wider as the hand lifts higher.
   const shadowStyle = useAnimatedStyle(() => ({
-    opacity: appear.value * 0.16,
+    opacity: appear.value * 0.15,
     transform: [
-      { translateX: x.value - HAND_W * 0.38 },
-      { translateY: y.value - HAND_H * 0.1 },
+      { translateX: x.value - HAND_W * 0.36 },
+      { translateY: y.value - HAND_H * 0.08 },
       { scaleX: lift.value * 1.05 },
-      { scaleY: lift.value * 0.5 },
+      { scaleY: lift.value * 0.45 },
     ],
   }));
 
-  // Steepened cross-fade so mid-blend never looks like two ghost hands.
-  const openStyle = useAnimatedStyle(() => ({
-    opacity: Math.pow(1 - curl.value, 1.6),
-  }));
-  const fistStyle = useAnimatedStyle(() => ({
-    opacity: Math.pow(curl.value, 1.6),
+  // The flat back of the hand is common to both poses; the curled-knuckle
+  // ridge fades in over it as the fingers fold away.
+  const knuckleStyle = useAnimatedStyle(() => ({
+    opacity: Math.pow(curl.value, 1.3),
   }));
 
-  // One ivory shell slips from the fist toward the pit on each drop.
+  const thumbStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: foldThumb.value * 10 },
+      { translateY: foldThumb.value * 6 },
+      { rotate: `${foldThumb.value * 42}deg` },
+      { scaleY: 1 - foldThumb.value * 0.25 },
+    ],
+  }));
+
+  // One ivory shell slips from the fingers toward the pit on each drop.
   const fallingShellStyle = useAnimatedStyle(() => ({
     opacity: release.value >= 1 ? 0 : 1 - release.value * 0.5,
     transform: [
-      { translateY: release.value * 22 },
+      { translateY: release.value * 24 },
       { scale: 1 - release.value * 0.3 },
     ],
   }));
@@ -182,8 +245,6 @@ export function SowingHandOverlay({
     opacity: Math.pow(curl.value, 1.4) * appear.value,
   }));
 
-  // Sunflower-packed mini cowries — same layout algorithm as the pits, so
-  // the hand's cargo visually matches the board's seeds.
   const heldShells = useMemo(() => seedLayout(heldCount, HELD_CLUSTER), [heldCount]);
 
   // Structural gate: unmounted whenever there is nothing valid to show.
@@ -198,17 +259,103 @@ export function SowingHandOverlay({
           <View style={styles.fallingShellHighlight} />
         </Animated.View>
 
-        {/* OPEN pose — extended fingers, nails, base creases. */}
-        <Animated.View style={[StyleSheet.absoluteFill, openStyle]}>
-          <HandOpen />
+        {/* Fingers — each articulated independently (index → pinky). */}
+        <Finger fold={foldIndex} left={14} height={26} width={10.5} />
+        <Finger fold={foldMiddle} left={25.5} height={30} width={11} tallest />
+        <Finger fold={foldRing} left={37} height={27.5} width={10.5} />
+        <Finger fold={foldPinky} left={48} height={22} width={9} />
+
+        {/* Back of the hand + fading wrist (shared by both poses). */}
+        <Svg width={HAND_W} height={HAND_H} viewBox="0 0 64 84" style={StyleSheet.absoluteFill}>
+          <Defs>
+            <LinearGradient id="backSkin" x1="0.25" y1="0.1" x2="0.85" y2="0.95">
+              <Stop offset="0" stopColor={SKIN_LIGHT} />
+              <Stop offset="0.55" stopColor={SKIN_MID} />
+              <Stop offset="1" stopColor={SKIN_DARK} />
+            </LinearGradient>
+            <LinearGradient id="wristFade" x1="0.5" y1="0" x2="0.5" y2="1">
+              <Stop offset="0" stopColor={SKIN_MID} stopOpacity="1" />
+              <Stop offset="1" stopColor={SKIN_MID} stopOpacity="0" />
+            </LinearGradient>
+          </Defs>
+          {/* Hand back: soft trapezoid, no outline — edges shaded by gradient. */}
+          <Path
+            d="M13,34
+               C13,30 15,27 19,26
+               L51,26
+               C55,27 57,30 57,34
+               C58,44 57,54 55,62
+               C53,70 48,74 41,75
+               L28,75
+               C21,74 16,70 15,62
+               C13,54 12,44 13,34 Z"
+            fill="url(#backSkin)"
+          />
+          {/* Ulnar-edge core shadow (rounds the form, replaces outlines). */}
+          <Path
+            d="M53,30 C55,42 54,56 51,66 C50,70 48,72 46,73 C50,70 52,64 53,56 C54,48 54,38 53,30 Z"
+            fill={SKIN_DEEP}
+            opacity="0.35"
+          />
+          {/* Radial sheen on the top of the hand back. */}
+          <Ellipse cx="30" cy="38" rx="14" ry="8" fill="#FFE9CF" opacity="0.16" />
+          {/* Tendon hints — barely-there. */}
+          <Path d="M24,32 C25,44 25,56 25,66" stroke={SKIN_DEEP} strokeWidth="0.8" opacity="0.12" fill="none" />
+          <Path d="M32,30 C33,44 33,58 32,68" stroke={SKIN_DEEP} strokeWidth="0.8" opacity="0.12" fill="none" />
+          <Path d="M41,32 C41,44 40,56 39,66" stroke={SKIN_DEEP} strokeWidth="0.8" opacity="0.12" fill="none" />
+          {/* Wrist fading out — the hand reads as entering the frame. */}
+          <Path d="M20,73 L44,73 C44,80 42,84 32,84 C22,84 20,80 20,73 Z" fill="url(#wristFade)" />
+        </Svg>
+
+        {/* Curled-knuckle ridge — fades in as the fingers fold away. */}
+        <Animated.View style={[StyleSheet.absoluteFill, knuckleStyle]}>
+          <Svg width={HAND_W} height={HAND_H} viewBox="0 0 64 84">
+            <Defs>
+              <LinearGradient id="knuckleSkin" x1="0.5" y1="0" x2="0.5" y2="1">
+                <Stop offset="0" stopColor={SKIN_LIGHT} />
+                <Stop offset="1" stopColor={SKIN_MID} />
+              </LinearGradient>
+            </Defs>
+            {/* Four knuckle mounds along the top of the fist. */}
+            <Path
+              d="M14,33
+                 C15,27 19,24 22,26
+                 C24,22 29,21 31,25
+                 C33,21 38,21 40,25
+                 C43,22 47,24 48,29
+                 C50,31 51,33 51,35
+                 L14,36 Z"
+              fill="url(#knuckleSkin)"
+            />
+            <Ellipse cx="21" cy="29" rx="3.4" ry="2.2" fill="#FFE9CF" opacity="0.3" />
+            <Ellipse cx="30.5" cy="27" rx="3.4" ry="2.2" fill="#FFE9CF" opacity="0.3" />
+            <Ellipse cx="39.5" cy="27.5" rx="3.2" ry="2.1" fill="#FFE9CF" opacity="0.3" />
+            <Ellipse cx="47" cy="30.5" rx="2.6" ry="1.8" fill="#FFE9CF" opacity="0.25" />
+            {/* Curled-finger separations under the knuckles. */}
+            <Path d="M26,27 C26,31 26,34 26,36" stroke={SKIN_DEEP} strokeWidth="0.9" opacity="0.3" fill="none" />
+            <Path d="M35,26 C35,30 35,33 35,36" stroke={SKIN_DEEP} strokeWidth="0.9" opacity="0.3" fill="none" />
+            <Path d="M43,27 C43,31 43,34 43,36" stroke={SKIN_DEEP} strokeWidth="0.9" opacity="0.3" fill="none" />
+          </Svg>
         </Animated.View>
 
-        {/* FIST pose — loose carrying fist, thumb wrapped across. */}
-        <Animated.View style={[StyleSheet.absoluteFill, fistStyle]}>
-          <HandFist />
+        {/* Thumb — folds across the palm as the hand closes. */}
+        <Animated.View style={[styles.thumb, thumbStyle]}>
+          <Svg width={16} height={30} viewBox="0 0 16 30">
+            <Defs>
+              <LinearGradient id="thumbSkin" x1="0.2" y1="0" x2="0.9" y2="1">
+                <Stop offset="0" stopColor={SKIN_LIGHT} />
+                <Stop offset="1" stopColor={SKIN_DARK} />
+              </LinearGradient>
+            </Defs>
+            <Path
+              d="M9,1 C13,1 15,4 14,9 L12,22 C11,27 8,29 5,28 C2,27 1,24 2,20 L4,7 C5,3 6,1 9,1 Z"
+              fill="url(#thumbSkin)"
+            />
+            <Ellipse cx="9.5" cy="5" rx="2.6" ry="3" fill={NAIL} opacity="0.8" />
+          </Svg>
         </Animated.View>
 
-        {/* Shells remaining in the hand, shown on the back of the fist. */}
+        {/* Shells remaining in the hand, on the back of the fist. */}
         <Animated.View pointerEvents="none" style={[styles.heldCluster, heldShellsStyle]}>
           {heldShells.map((s, i) => (
             <View
@@ -233,137 +380,95 @@ export function SowingHandOverlay({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Hand artwork — smooth silhouettes, warm skin gradient, subtle depth. */
-/* Right hand seen from the back, fingers pointing up.                  */
-/* ------------------------------------------------------------------ */
-
-const SKIN_LIGHT = '#C89468';
-const SKIN_DARK = '#9C6A40';
-const SKIN_EDGE = '#7A4E2C';
-const NAIL = '#E8CBAA';
-
-function SkinDefs({ id }: { id: string }) {
+/**
+ * One articulated finger. The fold is anchored at the knuckle (bottom edge):
+ * scaleY shrinks toward it with a translateY compensation, plus a slight
+ * counter-rotation, so the finger reads as curling under the hand rather
+ * than shrinking in place.
+ */
+function Finger({
+  fold,
+  left,
+  height,
+  width,
+  tallest = false,
+}: {
+  fold: SharedValue<number>;
+  left: number;
+  height: number;
+  width: number;
+  tallest?: boolean;
+}) {
+  const style = useAnimatedStyle(() => {
+    const s = 1 - fold.value * 0.85;
+    return {
+      transform: [
+        { translateY: ((1 - s) * height) / 2 },
+        { scaleY: s },
+        { rotate: `${fold.value * -4}deg` },
+      ],
+      opacity: 1 - fold.value * 0.25,
+    };
+  });
+  // Top of the hand back sits at y=26 in the 64×84 viewBox → px ≈ 26.
+  const top = HAND_H * (26 / 84) - height + (tallest ? 0 : 1.5);
   return (
-    <Defs>
-      <LinearGradient id={id} x1="0.3" y1="0" x2="0.7" y2="1">
-        <Stop offset="0" stopColor={SKIN_LIGHT} />
-        <Stop offset="1" stopColor={SKIN_DARK} />
-      </LinearGradient>
-    </Defs>
+    <Animated.View pointerEvents="none" style={[{ position: 'absolute', left, top, width, height }, style]}>
+      <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+        <Defs>
+          <LinearGradient id={`fingerSkin${left}`} x1="0.15" y1="0" x2="0.95" y2="0.2">
+            <Stop offset="0" stopColor={SKIN_LIGHT} />
+            <Stop offset="1" stopColor={SKIN_DARK} />
+          </LinearGradient>
+        </Defs>
+        {/* Softly tapered finger, rounded tip, no outline. */}
+        <Path
+          d={`M${width * 0.5},1
+              C${width * 0.85},1 ${width * 0.95},${height * 0.14} ${width * 0.92},${height * 0.3}
+              L${width * 0.95},${height * 0.92}
+              C${width * 0.95},${height} ${width * 0.05},${height} ${width * 0.05},${height * 0.92}
+              L${width * 0.08},${height * 0.3}
+              C${width * 0.05},${height * 0.14} ${width * 0.15},1 ${width * 0.5},1 Z`}
+          fill={`url(#fingerSkin${left})`}
+        />
+        {/* Nail */}
+        <Ellipse
+          cx={width * 0.5}
+          cy={height * 0.14}
+          rx={width * 0.26}
+          ry={height * 0.1}
+          fill={NAIL}
+          opacity="0.85"
+        />
+        {/* Joint creases */}
+        <Path
+          d={`M${width * 0.15},${height * 0.45} C${width * 0.4},${height * 0.42} ${width * 0.6},${height * 0.42} ${width * 0.85},${height * 0.45}`}
+          stroke={SKIN_DEEP}
+          strokeWidth="0.8"
+          opacity="0.22"
+          fill="none"
+        />
+        <Path
+          d={`M${width * 0.15},${height * 0.72} C${width * 0.4},${height * 0.69} ${width * 0.6},${height * 0.69} ${width * 0.85},${height * 0.72}`}
+          stroke={SKIN_DEEP}
+          strokeWidth="0.8"
+          opacity="0.22"
+          fill="none"
+        />
+      </Svg>
+    </Animated.View>
   );
 }
 
-/** Open hand: relaxed extended fingers, slight natural spread. */
-function HandOpen() {
-  return (
-    <Svg width={HAND_W} height={HAND_H} viewBox="0 0 100 130">
-      <SkinDefs id="skinOpen" />
-      {/* Silhouette: wrist → thumb → index…pinky → palm edge. */}
-      <Path
-        d="M35,127
-           C31,113 29,99 30,86
-           C27,82 20,76 14,68
-           C10,62 9,55 13,52
-           C17,49 22,53 26,59
-           C29,64 31,69 32,73
-           C31,60 31,47 32,36
-           C32,29 34,25 37,25
-           C40,25 42,29 42,35
-           L42,52
-           C43,50 44,48 45,47
-           L45,22
-           C45,15 47,11 50,11
-           C53,11 55,15 55,22
-           L55,46
-           C56,47 57,49 58,50
-           L58,26
-           C58,20 60,16 63,16
-           C66,16 68,20 68,26
-           L68,52
-           C69,53 70,55 71,57
-           L71,38
-           C71,33 73,30 75,30
-           C78,30 79,33 79,38
-           L79,62
-           C79,76 77,94 73,108
-           C71,117 69,123 67,127
-           Z"
-        fill="url(#skinOpen)"
-        stroke={SKIN_EDGE}
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      {/* Nails */}
-      <Ellipse cx="37.5" cy="30" rx="3" ry="3.6" fill={NAIL} opacity="0.85" />
-      <Ellipse cx="50" cy="16.5" rx="3.2" ry="3.8" fill={NAIL} opacity="0.85" />
-      <Ellipse cx="63" cy="21.5" rx="3" ry="3.6" fill={NAIL} opacity="0.85" />
-      <Ellipse cx="75" cy="34.5" rx="2.6" ry="3.2" fill={NAIL} opacity="0.85" />
-      <Ellipse cx="14.5" cy="56" rx="2.6" ry="3.2" fill={NAIL} opacity="0.8" />
-      {/* Finger-base creases */}
-      <Path d="M33,58 C36,56 40,56 42,58" stroke={SKIN_EDGE} strokeWidth="1" opacity="0.3" fill="none" />
-      <Path d="M45,53 C48,51 52,51 55,53" stroke={SKIN_EDGE} strokeWidth="1" opacity="0.3" fill="none" />
-      <Path d="M58,56 C61,54 65,54 68,56" stroke={SKIN_EDGE} strokeWidth="1" opacity="0.3" fill="none" />
-      <Path d="M70,62 C73,60 76,60 79,62" stroke={SKIN_EDGE} strokeWidth="1" opacity="0.3" fill="none" />
-      {/* Tendon hints on the back of the hand */}
-      <Path d="M42,66 C44,80 45,94 45,106" stroke={SKIN_EDGE} strokeWidth="0.9" opacity="0.18" fill="none" />
-      <Path d="M54,62 C55,78 55,94 54,108" stroke={SKIN_EDGE} strokeWidth="0.9" opacity="0.18" fill="none" />
-      <Path d="M65,64 C65,80 64,94 62,106" stroke={SKIN_EDGE} strokeWidth="0.9" opacity="0.18" fill="none" />
-    </Svg>
-  );
-}
+/* Warm brown skin — gradient-shaded, matched to the board's palette. */
+const SKIN_LIGHT = '#D2A075';
+const SKIN_MID = '#B98457';
+const SKIN_DARK = '#96683F';
+const SKIN_DEEP = '#6B4526';
+const NAIL = '#EBD0B0';
 
-/** Carrying fist: fingers curled under, thumb wrapped across the side. */
-function HandFist() {
-  return (
-    <Svg width={HAND_W} height={HAND_H} viewBox="0 0 100 130">
-      <SkinDefs id="skinFist" />
-      {/* Fist body with four knuckle bumps along the top. */}
-      <Path
-        d="M34,122
-           C29,110 27,96 28,83
-           C29,71 33,62 40,57
-           C41,51 45,49 49,52
-           C51,47 57,46 60,50
-           C63,46 69,46 71,51
-           C74,48 79,50 80,55
-           C84,62 85,73 84,85
-           C83,99 80,111 74,122
-           Z"
-        fill="url(#skinFist)"
-        stroke={SKIN_EDGE}
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      {/* Curled-finger separations below the knuckles */}
-      <Path d="M50,53 C49,63 49,73 50,82" stroke={SKIN_EDGE} strokeWidth="1.1" opacity="0.4" fill="none" />
-      <Path d="M61,51 C60,61 60,71 61,80" stroke={SKIN_EDGE} strokeWidth="1.1" opacity="0.4" fill="none" />
-      <Path d="M71,53 C70,62 70,71 71,79" stroke={SKIN_EDGE} strokeWidth="1.1" opacity="0.4" fill="none" />
-      {/* Knuckle highlights */}
-      <Ellipse cx="45" cy="56" rx="3.4" ry="2.4" fill={SKIN_LIGHT} opacity="0.5" />
-      <Ellipse cx="55.5" cy="53" rx="3.4" ry="2.4" fill={SKIN_LIGHT} opacity="0.5" />
-      <Ellipse cx="66" cy="53" rx="3.2" ry="2.3" fill={SKIN_LIGHT} opacity="0.5" />
-      <Ellipse cx="75.5" cy="56" rx="2.8" ry="2.1" fill={SKIN_LIGHT} opacity="0.5" />
-      {/* Thumb wrapped across the lower-left of the fist */}
-      <Path
-        d="M31,80
-           C25,84 22,92 26,100
-           C30,108 39,111 46,107
-           C42,101 38,93 36,85
-           C35,81 33,79 31,80
-           Z"
-        fill="url(#skinFist)"
-        stroke={SKIN_EDGE}
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <Ellipse cx="42" cy="103" rx="2.8" ry="2.2" fill={NAIL} opacity="0.75" />
-    </Svg>
-  );
-}
-
-const HAND_W = 62;
-const HAND_H = 80;
+const HAND_W = 64;
+const HAND_H = 84;
 const MAX_HELD_SHELLS = 12;
 /** Side of the square cluster the held shells are packed into. */
 const HELD_CLUSTER = 30;
@@ -380,22 +485,29 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    width: HAND_W * 0.76,
-    height: HAND_H * 0.3,
+    width: HAND_W * 0.72,
+    height: HAND_H * 0.26,
     borderRadius: 999,
     backgroundColor: '#1A0E05',
   },
+  thumb: {
+    position: 'absolute',
+    left: 2,
+    top: HAND_H * 0.38,
+    width: 16,
+    height: 30,
+  },
   heldCluster: {
     position: 'absolute',
-    // Centered on the back of the fist.
-    left: HAND_W * 0.5 - HELD_CLUSTER / 2 + 4,
-    top: HAND_H * 0.52 - HELD_CLUSTER / 2,
+    // Centered on the back of the fist, below the knuckle ridge.
+    left: HAND_W * 0.5 - HELD_CLUSTER / 2 + 1,
+    top: HAND_H * 0.56 - HELD_CLUSTER / 2,
     width: HELD_CLUSTER,
     height: HELD_CLUSTER,
   },
   fallingShell: {
     position: 'absolute',
-    top: HAND_H * 0.42 - 5,
+    top: HAND_H * 0.4 - 5,
     left: HAND_W / 2 - 5,
     width: 11,
     height: 11,
