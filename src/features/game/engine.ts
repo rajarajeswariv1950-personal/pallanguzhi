@@ -232,6 +232,18 @@ export interface MoveFrame {
   stores: [number, number];
   /** What happened: a seed dropped, a capture, a new-lap scoop, or the end-of-round banking. */
   kind: 'drop' | 'capture' | 'scoop' | 'bank';
+  /**
+   * The pit this step acted on: the scooped pit, the pit a seed dropped into,
+   * or the captured pit. Absent for 'bank' (which touches a whole side at
+   * once). Lets an overlay (e.g. a sowing hand) know where to move.
+   */
+  pit?: number;
+  /**
+   * Seeds held in the mover's hand AFTER this step: the scooped count on a
+   * 'scoop', decrementing by one per 'drop'. Lets an overlay show the shells
+   * remaining in the hand. Absent for 'bank'.
+   */
+  hand?: number;
 }
 
 /**
@@ -250,12 +262,19 @@ export function traceMove(state: GameState, index: number): MoveFrame[] {
   const stores: [number, number] = [state.stores[0], state.stores[1]];
   const player = state.current;
   const frames: MoveFrame[] = [];
-  const snap = (kind: MoveFrame['kind']) =>
-    frames.push({ pits: pits.slice(), stores: [stores[0], stores[1]], kind });
+  let hand = 0;
+  const snap = (kind: MoveFrame['kind'], pit?: number) =>
+    frames.push({
+      pits: pits.slice(),
+      stores: [stores[0], stores[1]],
+      kind,
+      pit,
+      hand: kind === 'bank' ? undefined : hand,
+    });
 
-  let hand = pits[index];
+  hand = pits[index];
   pits[index] = 0;
-  snap('scoop');
+  snap('scoop', index);
   let pos = index;
   let drops = 0;
 
@@ -265,11 +284,11 @@ export function traceMove(state: GameState, index: number): MoveFrame[] {
       pits[pos] += 1;
       hand -= 1;
       drops += 1;
-      snap('drop');
+      snap('drop', pos);
       if (state.config.captureOnFour && pits[pos] === 4) {
         stores[player] += 4;
         pits[pos] = 0;
-        snap('capture');
+        snap('capture', pos);
       }
       if (drops > MAX_DROPS) {
         hand = 0;
@@ -280,14 +299,14 @@ export function traceMove(state: GameState, index: number): MoveFrame[] {
     if (pits[next] > 0 && drops <= MAX_DROPS) {
       hand = pits[next];
       pits[next] = 0;
-      snap('scoop');
+      snap('scoop', next);
       pos = next;
     } else {
       const after = (next + 1) % N;
       if (pits[next] === 0 && pits[after] > 0) {
         stores[player] += pits[after];
         pits[after] = 0;
-        snap('capture');
+        snap('capture', after);
       }
       break;
     }

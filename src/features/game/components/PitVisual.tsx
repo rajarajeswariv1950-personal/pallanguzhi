@@ -207,7 +207,9 @@ export function PitFace({
 
       {showCount && count > 0 ? (
         <View pointerEvents="none" style={styles.countChip}>
-          <AppText style={styles.countText}>{count}</AppText>
+          <AppText style={styles.countText} numberOfLines={1}>
+            {count}
+          </AppText>
         </View>
       ) : null}
     </View>
@@ -282,19 +284,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -3,
     alignSelf: 'center',
-    minWidth: 18,
+    minWidth: 22,
+    height: 17,
     paddingHorizontal: 5,
-    paddingVertical: 1,
     borderRadius: theme.radii.pill,
     backgroundColor: 'rgba(8,26,24,0.94)',
     borderWidth: 1,
     borderColor: 'rgba(228,193,115,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
+    // Two-digit counts must widen the chip, never wrap the digits
+    // (Android renders wrapped digits stacked/distorted otherwise).
+    flexDirection: 'row',
   },
   countText: {
     fontSize: 11,
     fontWeight: '800',
+    lineHeight: 13,
     color: theme.palette.goldLight,
+    textAlign: 'center',
+    // Android adds asymmetric font padding inside tight chips.
+    includeFontPadding: false,
   },
 });

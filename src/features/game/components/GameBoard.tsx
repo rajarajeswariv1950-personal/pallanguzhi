@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -9,9 +9,11 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { AppText } from '@/components/ui/Text';
-import { ownerOf, type Player } from '@/features/game/engine';
+import { ownerOf, type MoveFrame, type Player } from '@/features/game/engine';
 import { BOTTOM_INDICES, TOP_INDICES } from '@/features/game/boardView';
 import { PitFace, SEED_COLORS } from '@/features/game/components/PitVisual';
+import { SOWING_HAND_ENABLED, SowingHandOverlay } from '@/features/game/components/SowingHandOverlay';
+import { usePitCenters, type PitCenterRegistry } from '@/features/game/components/usePitCenters';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
 import { theme } from '@/theme';
 
@@ -22,6 +24,12 @@ export interface GameBoardProps {
   legalPits: number[];
   interactive: boolean;
   onPressPit: (boardIndex: number) => void;
+  /**
+   * The move-animation frame currently displayed (from the controller's
+   * pacing loop), used to drive the sowing-hand overlay. Optional: callers
+   * that don't pass it keep today's board behavior exactly.
+   */
+  frame?: MoveFrame | null;
 }
 
 export function GameBoard({
@@ -31,9 +39,19 @@ export function GameBoard({
   legalPits,
   interactive,
   onPressPit,
+  frame = null,
 }: GameBoardProps) {
+  // Pit-center registry for board overlays (sowing hand). Each pit measures
+  // itself relative to this container; `layoutVersion` bumps on any board
+  // re-layout (rotation, resize) so pits re-measure even when their own
+  // local frame didn't change. Observational only — no visual effect.
+  const boardRef = useRef<View>(null);
+  const pitCenters = usePitCenters();
+  const [layoutVersion, setLayoutVersion] = useState(0);
+  const onBoardLayout = useCallback(() => setLayoutVersion((v) => v + 1), []);
+
   return (
-    <View style={styles.board}>
+    <View ref={boardRef} onLayout={onBoardLayout} style={styles.board}>
       {/* Layered walnut: warm diagonal base + top sheen for a polished, carved look. */}
       <LinearGradient
         colors={theme.gradients.board}
@@ -64,6 +82,9 @@ export function GameBoard({
           legalPits={legalPits}
           interactive={interactive}
           onPressPit={onPressPit}
+          boardRef={boardRef}
+          registry={pitCenters}
+          layoutVersion={layoutVersion}
         />
         <View style={styles.midSeam} pointerEvents="none" />
         <PitRow
@@ -73,9 +94,18 @@ export function GameBoard({
           legalPits={legalPits}
           interactive={interactive}
           onPressPit={onPressPit}
+          boardRef={boardRef}
+          registry={pitCenters}
+          layoutVersion={layoutVersion}
         />
       </View>
       <Store value={stores[0]} active={current === 0} />
+
+      {/* Sowing-hand overlay (temporary P2.3 proxy, gated OFF by default).
+          When the flag is false nothing mounts — zero runtime impact. */}
+      {SOWING_HAND_ENABLED ? (
+        <SowingHandOverlay frame={frame} registry={pitCenters} player={current} />
+      ) : null}
     </View>
   );
 }
@@ -87,6 +117,9 @@ function PitRow({
   legalPits,
   interactive,
   onPressPit,
+  boardRef,
+  registry,
+  layoutVersion,
 }: {
   indices: readonly number[];
   pits: number[];
@@ -94,6 +127,9 @@ function PitRow({
   legalPits: number[];
   interactive: boolean;
   onPressPit: (boardIndex: number) => void;
+  boardRef: RefObject<View | null>;
+  registry: PitCenterRegistry;
+  layoutVersion: number;
 }) {
   return (
     <View style={styles.row}>
@@ -104,10 +140,14 @@ function PitRow({
         return (
           <Pit
             key={boardIndex}
+            boardIndex={boardIndex}
             count={pits[boardIndex] ?? 0}
             legal={legal}
             pressable={pressable}
             onPress={() => onPressPit(boardIndex)}
+            boardRef={boardRef}
+            registry={registry}
+            layoutVersion={layoutVersion}
           />
         );
       })}
@@ -116,19 +156,56 @@ function PitRow({
 }
 
 function Pit({
+  boardIndex,
   count,
   legal,
   pressable,
   onPress,
+  boardRef,
+  registry,
+  layoutVersion,
 }: {
+  boardIndex: number;
   count: number;
   legal: boolean;
   pressable: boolean;
   onPress: () => void;
+  boardRef: RefObject<View | null>;
+  registry: PitCenterRegistry;
+  layoutVersion: number;
 }) {
   const { t } = useAppTranslation();
   const scale = useSharedValue(1);
   const prev = useRef(count);
+  const tapRef = useRef<View>(null);
+
+  // Report this pit's center in board coordinates for overlay animations.
+  // Defensive by design: measureLayout is supported on iOS/Android (incl.
+  // new arch) and react-native-web, but any failure — missing refs, a
+  // platform quirk, a mid-unmount call — must never take the board down.
+  // Unmeasured pits simply keep the overlay hidden.
+  const measure = useCallback(() => {
+    const board = boardRef.current;
+    const node = tapRef.current;
+    if (!board || !node || typeof node.measureLayout !== 'function') return;
+    try {
+      node.measureLayout(
+        board,
+        (x, y, w, h) =>
+          registry.register(boardIndex, { x: x + w / 2, y: y + h / 2, size: Math.min(w, h) }),
+        () => {},
+      );
+    } catch {
+      // Swallow: measurement is an enhancement, never a requirement.
+    }
+  }, [boardRef, registry, boardIndex]);
+
+  // Re-measure after any board-level re-layout (rotation/resize): ancestors
+  // may move this pit without changing its own local frame, which would not
+  // re-fire the pit's own onLayout.
+  useEffect(() => {
+    measure();
+  }, [measure, layoutVersion]);
 
   // Springy settle whenever the pit's contents change (fill or empty).
   useEffect(() => {
@@ -145,6 +222,8 @@ function Pit({
 
   return (
     <Pressable
+      ref={tapRef}
+      onLayout={measure}
       disabled={!pressable}
       onPress={pressable ? onPress : undefined}
       accessibilityRole="button"

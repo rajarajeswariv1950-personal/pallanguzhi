@@ -20,6 +20,8 @@ export interface GameController {
   /** Board to RENDER: mid-move animation frames, else the settled state. */
   displayPits: number[];
   displayStores: [number, number];
+  /** The animation frame currently shown (for overlays), null when settled. */
+  frame: MoveFrame | null;
   /** True while seeds are visibly moving (input is blocked). */
   animating: boolean;
   legalPits: number[];
@@ -199,6 +201,7 @@ export function useGameController({
     state,
     displayPits: frame ? frame.pits : state.pits,
     displayStores: frame ? frame.stores : state.stores,
+    frame,
     animating,
     legalPits: animating ? [] : legalMoves(state),
     thinking,

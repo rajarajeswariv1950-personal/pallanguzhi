@@ -72,7 +72,7 @@ function OfflineGameplay({ navigation, route }: RootStackScreenProps<'Gameplay'>
     [mode, difficulty, p0Name, p1Name, navigation],
   );
 
-  const { state, displayPits, displayStores, animating, legalPits, thinking, isHumanTurn, play } =
+  const { state, displayPits, displayStores, frame, animating, legalPits, thinking, isHumanTurn, play } =
     useGameController({
       mode,
       difficulty,
@@ -125,6 +125,7 @@ function OfflineGameplay({ navigation, route }: RootStackScreenProps<'Gameplay'>
           legalPits={legalPits}
           interactive={isHumanTurn}
           onPressPit={play}
+          frame={frame}
         />
 
         <AppText variant="caption" muted align="center" style={styles.hint}>
