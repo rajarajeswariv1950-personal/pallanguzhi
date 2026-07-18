@@ -126,12 +126,26 @@ export const en = {
     speed: 'Speed {{value}}',
     stepLabel: 'Step {{current}} of {{total}}',
     controlsHint: 'Play or pause, step one move at a time, or adjust the speed.',
-    step1: 'The hand picks up all the shells from one of your pits.',
-    step2: 'It drops one shell into the next pit, and moves on in order.',
-    step3: 'The sowing continues. One shell falls into each pit.',
-    step4: 'The last shell lands here.',
-    step5: 'A capture! These shells travel into your store.',
-    step6: 'Your turn is over. Now the other player plays.',
+    step1: 'The hand lifts every shell from one of your own pits.',
+    stepSow: 'One shell drops into the next pit, moving anticlockwise around the board.',
+    stepPasu:
+      'A sown shell has just made this pit exactly four — a Pasu, the cow! All four shells are claimed into your store on the spot, and the sowing carries on.',
+    stepLap:
+      'The last shell landed beside a pit that still holds shells, so the hand scoops those up and keeps sowing. Your turn carries on in a fresh lap.',
+    stepCapture:
+      'This lap ends beside an empty pit, so the shells just past it are yours. They travel into your store.',
+    stepTurn: 'Your turn is over. Now the other player takes a turn.',
+    onlineDemoTitle: 'Start an Online Match',
+    onlineDemoIntro:
+      'Watch how two friends connect from their own phones and begin a match together. Play it step by step, exactly like the move demo above.',
+    od1: 'From the game modes, choose Online Multiplayer. Type your name and pick a level.',
+    od2: 'Tap Create Room. A private room opens with its own room code.',
+    od3: 'Share the room code with your friend, by message or simply by saying it aloud.',
+    od4: 'On their own phone, your friend taps Join Room and types that same code.',
+    od5: 'Both names now appear in the waiting room. Each player taps I am Ready.',
+    od6: 'The moment both are ready, the board opens and the match begins. Enjoy!',
+    odYou: 'Your phone',
+    odFriend: 'Your friend’s phone',
     examplesTitle: 'See It in Pictures',
     sowingExampleTitle: 'Sowing',
     sowingExampleCaption:
@@ -141,7 +155,9 @@ export const en = {
       'Your last shell lands in the golden ringed pit. The next pit is empty, so you look one pit further. The three shells waiting there are yours, and they move into your store on the right.',
     pasuExampleTitle: 'The Cow Rule (Pasu)',
     pasuExampleCaption:
-      'This pit held three shells. A sown shell falls in and makes it exactly four. Those four shells become a Pasu, a cow, and all four are claimed into the store at once.',
+      'You lift the three shells from the golden pit and sow them one by one into the three pits that follow. Your last shell falls into a pit that already held three, and now exactly four shells sit together in it. That is a Pasu, the cow. You claim all four into your store at once, on the spot, no matter whose side of the board the pit is on.',
+    pasuMidLabel: 'The cow is born: exactly four',
+    legendPasuFour: 'Exactly four shells together: a Pasu',
     legendLastDrop: 'Last shell lands here',
     legendEmpty: 'Empty pit',
     legendCaptured: 'These shells are captured',
@@ -157,9 +173,9 @@ export const en = {
     faqQ3: 'Do I get another chance, or an extra turn?',
     faqA3:
       'Yes, and here is exactly how. When your last shell falls, look at the very next pit. If it has shells, you pick all of them up and continue sowing. That is a fresh lap inside the same turn, so your turn simply carries on. One turn can hold many laps this way. Your turn truly ends only when a lap stops beside an empty pit, after you collect any capture waiting beyond it. Then the other player plays.',
-    faqQ4: 'What is a Pasu, the cow?',
+    faqQ4: 'What is a Pasu / "The Cow"?',
     faqA4:
-      'When a sown shell makes any pit hold exactly four shells, those four are called a Pasu, which means a cow. The player whose shell completed the four claims all four shells into their store at once, and the sowing continues as if nothing happened. Some families call the same rule Kasu.',
+      'When a sown shell makes any pit hold exactly four shells, those four are called a Pasu, the Tamil word for a cow. The player whose shell completed the four claims all four shells into their store at once, and the sowing continues as if nothing happened. Why a cow? In the farming villages where this game grew up, a cow was the most treasured wealth a family could own, a living treasure that kept on giving. So the moment four shells suddenly become yours is named after that same joy: it feels like being gifted a cow. A lovely way to remember the rule is that a cow stands on four legs, and a Pasu is born the instant a pit stands at four shells. Some families call the very same rule Kasu, the word for a coin, which carries the same happy meaning of sudden wealth.',
     faqQ5: 'Do my shells fall into the other player’s pits too?',
     faqA5:
       'Yes. Sowing flows around the whole board, one shell into every pit you pass, on both sides. Only the two stores are skipped. This is why a clever player watches what a move gives the other side.',

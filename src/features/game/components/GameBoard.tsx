@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import { RefObject, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -30,6 +30,14 @@ export interface GameBoardProps {
    * that don't pass it keep today's board behavior exactly.
    */
   frame?: MoveFrame | null;
+  /**
+   * The player whose hand performs the replayed move. Local modes commit
+   * state only after the animation, so `current` IS the mover and this can
+   * be omitted; online replays receive the post-move state (where `current`
+   * is already the NEXT player) and must pass the true mover explicitly so
+   * the hand reaches in from the correct side of the board.
+   */
+  handPlayer?: Player;
 }
 
 export function GameBoard({
@@ -40,6 +48,7 @@ export function GameBoard({
   interactive,
   onPressPit,
   frame = null,
+  handPlayer,
 }: GameBoardProps) {
   // Pit-center registry for board overlays (sowing hand). Each pit measures
   // itself relative to this container; `layoutVersion` bumps on any board
@@ -147,7 +156,7 @@ export function GameBoard({
       {SOWING_HAND_ENABLED ? (
         <>
           <SowingHandPrewarm />
-          <SowingHandOverlay frame={frame} registry={pitCenters} player={current} />
+          <SowingHandOverlay frame={frame} registry={pitCenters} player={handPlayer ?? current} />
         </>
       ) : null}
     </View>
@@ -188,7 +197,7 @@ function PitRow({
             count={pits[boardIndex] ?? 0}
             legal={legal}
             pressable={pressable}
-            onPress={() => onPressPit(boardIndex)}
+            onPressPit={onPressPit}
             boardRef={boardRef}
             registry={registry}
             layoutVersion={layoutVersion}
@@ -199,12 +208,19 @@ function PitRow({
   );
 }
 
-function Pit({
+/**
+ * Memoized so a mid-move animation frame re-renders only the pits whose
+ * count/legality actually changed — the rest of the board skips work and the
+ * hand animation never competes with needless reconciliation for JS time.
+ * `onPressPit` must be referentially stable (it is: controller callbacks and
+ * the multiplayer store action are both stable across renders).
+ */
+const Pit = memo(function Pit({
   boardIndex,
   count,
   legal,
   pressable,
-  onPress,
+  onPressPit,
   boardRef,
   registry,
   layoutVersion,
@@ -213,7 +229,7 @@ function Pit({
   count: number;
   legal: boolean;
   pressable: boolean;
-  onPress: () => void;
+  onPressPit: (boardIndex: number) => void;
   boardRef: RefObject<View | null>;
   registry: PitCenterRegistry;
   layoutVersion: number;
@@ -269,7 +285,7 @@ function Pit({
       ref={tapRef}
       onLayout={measure}
       disabled={!pressable}
-      onPress={pressable ? onPress : undefined}
+      onPress={pressable ? () => onPressPit(boardIndex) : undefined}
       accessibilityRole="button"
       accessibilityLabel={t('gameplay.pitLabel', { count })}
       accessibilityState={{ disabled: !pressable }}
@@ -280,7 +296,7 @@ function Pit({
       </Animated.View>
     </Pressable>
   );
-}
+});
 
 function Store({ value, active }: { value: number; active: boolean }) {
   const { t } = useAppTranslation();

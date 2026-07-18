@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { BrandedScreen, OptionCard, Card, Input, AppText, Button } from '@/components';
+import { BrandedScreen, OptionCard, Card, Input, AppText, Button, Divider } from '@/components';
+import { OnlineConnectDemo } from '@/features/tutorial/OnlineConnectDemo';
 import { PremiumLockCard } from '@/features/premium/PremiumLockCard';
 import { usePremium } from '@/features/premium/usePremium';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
@@ -104,6 +105,17 @@ export function OnlineLobbyScreen({ navigation }: RootStackScreenProps<'OnlineLo
         <AppText variant="caption" muted align="center" style={styles.note}>
           {t('online.twoPlayerNote')}
         </AppText>
+
+        {/* Step-through demo of connecting two phones — same transport as the
+            Watch-a-Move lesson in How to Play. */}
+        <Card>
+          <AppText variant="h3">{t('tutorial.onlineDemoTitle')}</AppText>
+          <AppText variant="caption" muted style={styles.demoIntro}>
+            {t('tutorial.onlineDemoIntro')}
+          </AppText>
+          <Divider style={styles.demoDivider} />
+          <OnlineConnectDemo />
+        </Card>
       </View>
     </BrandedScreen>
   );
@@ -115,6 +127,8 @@ const styles = StyleSheet.create({
     paddingTop: theme.spacing.md,
   },
   note: { marginTop: theme.spacing.xs },
+  demoIntro: { marginTop: theme.spacing.xs },
+  demoDivider: { marginVertical: theme.spacing.md },
   levelRow: {
     flexDirection: 'row',
     gap: theme.spacing.sm,

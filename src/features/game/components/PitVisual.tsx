@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -62,7 +62,13 @@ export function seedLayout(n: number, size: number): SeedSpec[] {
   return specs;
 }
 
-export function Seed({ spec, index, animate = true }: { spec: SeedSpec; index: number; animate?: boolean }) {
+/**
+ * Memoized: during a paced move animation the whole board re-renders once per
+ * frame; the seed specs are referentially stable (useMemo in PitFace), so
+ * unchanged shells skip reconciliation entirely and the JS thread stays free
+ * for the sowing-hand overlay — no dropped frames even on low-end devices.
+ */
+export const Seed = memo(function Seed({ spec, index, animate = true }: { spec: SeedSpec; index: number; animate?: boolean }) {
   const p = useSharedValue(animate ? 0 : 1);
   useEffect(() => {
     if (!animate) return;
@@ -142,7 +148,7 @@ export function Seed({ spec, index, animate = true }: { spec: SeedSpec; index: n
       ) : null}
     </Animated.View>
   );
-}
+});
 
 export interface PitFaceProps {
   count: number;
@@ -163,8 +169,12 @@ export interface PitFaceProps {
  * The carved pit hollow with seeds, depth shading, count chip, and an optional
  * pulsing legal-move ring. Purely presentational — callers wrap it with the
  * press target / bounce animation.
+ *
+ * Memoized on its primitive props: on every animation frame only the pit a
+ * shell just landed in (or was scooped/captured from) re-renders; the other
+ * 13 pits bail out before touching the native tree.
  */
-export function PitFace({
+export const PitFace = memo(function PitFace({
   count,
   highlight = false,
   capture = false,
@@ -248,7 +258,7 @@ export function PitFace({
       ) : null}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   face: {

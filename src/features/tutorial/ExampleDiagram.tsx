@@ -36,6 +36,9 @@ export interface ExampleDiagramProps {
   afterLabel: string;
   before: MiniBoardState;
   after: MiniBoardState;
+  /** Optional middle stage — e.g. the exact moment a pit reaches four (Pasu). */
+  midLabel?: string;
+  mid?: MiniBoardState;
   legend?: LegendEntry[];
   /** Optional heading override (the How to Play screen passes its handwritten script style). */
   titleStyle?: StyleProp<TextStyle>;
@@ -48,6 +51,8 @@ export function ExampleDiagram({
   afterLabel,
   before,
   after,
+  midLabel,
+  mid,
   legend,
   titleStyle,
 }: ExampleDiagramProps) {
@@ -62,13 +67,21 @@ export function ExampleDiagram({
         <View style={styles.arrow}>
           <Icon name="arrow-down" size={22} color={theme.colors.primaryLight} />
         </View>
+        {mid ? (
+          <>
+            <LabeledBoard label={midLabel ?? ''} state={mid} />
+            <View style={styles.arrow}>
+              <Icon name="arrow-down" size={22} color={theme.colors.primaryLight} />
+            </View>
+          </>
+        ) : null}
         <LabeledBoard label={afterLabel} state={after} />
       </View>
 
       {legend && legend.length > 0 ? (
         <View style={styles.legend}>
-          {legend.map((entry) => (
-            <View key={entry.kind} style={styles.legendRow}>
+          {legend.map((entry, i) => (
+            <View key={`${entry.kind}-${i}`} style={styles.legendRow}>
               <View
                 style={[
                   styles.legendSwatch,

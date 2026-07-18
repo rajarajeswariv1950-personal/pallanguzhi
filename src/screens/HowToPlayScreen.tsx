@@ -11,6 +11,7 @@ import {
 } from '@/components';
 import type { IconName } from '@/components';
 import { TutorialDemo } from '@/features/tutorial/TutorialDemo';
+import { OnlineConnectDemo } from '@/features/tutorial/OnlineConnectDemo';
 import { ExampleDiagram } from '@/features/tutorial/ExampleDiagram';
 import { FaqItem } from '@/features/tutorial/FaqItem';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
@@ -88,6 +89,18 @@ export function HowToPlayScreen(_props: RootStackScreenProps<'HowToPlay'>) {
           </Card>
         </FadeSlideIn>
 
+        {/* Animated online-connection demo: how two phones find each other. */}
+        <FadeSlideIn delay={step()}>
+          <Card>
+            <SectionHeader icon="wifi" title={t('tutorial.onlineDemoTitle')} />
+            <AppText variant="caption" muted style={styles.demoIntro}>
+              {t('tutorial.onlineDemoIntro')}
+            </AppText>
+            <Divider style={styles.divider} />
+            <OnlineConnectDemo />
+          </Card>
+        </FadeSlideIn>
+
         {/* Core rule sections */}
         {sections.map((section) => (
           <FadeSlideIn key={section.title} delay={step()}>
@@ -157,8 +170,13 @@ export function HowToPlayScreen(_props: RootStackScreenProps<'HowToPlay'>) {
           </Card>
         </FadeSlideIn>
 
-        {/* The Pasu (cow): a sown shell makes a pit exactly four, and all
-            four are claimed into the store at once. */}
+        {/* The Pasu (cow), told in three engine-exact snapshots. BEFORE: the
+            golden pit holds the 3 shells about to be sown. THE MOMENT: those
+            shells have landed one by one (each following pit gains one) and
+            the last one makes a pit exactly FOUR — all four cowries sit
+            visibly in the pit, ready to be picked up. AFTER: the player has
+            scooped the four into their store; the sown pits keep their new
+            counts. Verified against the rules engine by unit test. */}
         <FadeSlideIn delay={step()}>
           <Card>
             <ExampleDiagram
@@ -166,21 +184,28 @@ export function HowToPlayScreen(_props: RootStackScreenProps<'HowToPlay'>) {
               title={t('tutorial.pasuExampleTitle')}
               caption={t('tutorial.pasuExampleCaption')}
               beforeLabel={t('tutorial.before')}
+              midLabel={t('tutorial.pasuMidLabel')}
               afterLabel={t('tutorial.after')}
               before={{
                 top: [2, 2, 2, 2, 2, 2, 2],
-                bottom: [2, 0, 3, 2, 2, 2, 2],
+                bottom: [0, 3, 1, 2, 3, 0, 0],
                 store: 0,
-                highlightBottom: [2],
+                highlightBottom: [1],
+              }}
+              mid={{
+                top: [2, 2, 2, 2, 2, 2, 2],
+                bottom: [0, 0, 2, 3, 4, 0, 0],
+                store: 0,
+                highlightBottom: [4],
               }}
               after={{
                 top: [2, 2, 2, 2, 2, 2, 2],
-                bottom: [2, 0, 0, 2, 2, 2, 2],
+                bottom: [0, 0, 2, 3, 0, 0, 0],
                 store: 4,
-                captureBottom: [2],
+                captureBottom: [4],
               }}
               legend={[
-                { kind: 'last', label: t('tutorial.legendLastDrop') },
+                { kind: 'last', label: t('tutorial.legendPasuFour') },
                 { kind: 'capture', label: t('tutorial.legendCaptured') },
               ]}
             />

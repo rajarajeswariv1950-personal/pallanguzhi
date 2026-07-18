@@ -4,7 +4,7 @@ import { BrandedScreen, Button, AppText, Badge, StateMessage } from '@/component
 import { GameBoard } from '@/features/game/components/GameBoard';
 import { Scoreboard } from '@/features/game/components/Scoreboard';
 import { MusicControlBar } from '@/features/game/components/MusicControlBar';
-import { legalMoves, traceMove, type GameState, type MoveFrame } from '@/features/game/engine';
+import { legalMoves, ownerOf, traceMove, type GameState, type MoveFrame } from '@/features/game/engine';
 import { useMultiplayerStore } from './store';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
 import { useProfileStore } from '@/store/profileStore';
@@ -223,6 +223,10 @@ export function OnlineGameplay({ navigation, route }: RootStackScreenProps<'Game
           legalPits={legal}
           interactive={myTurn}
           onPressPit={sendMove}
+          frame={frame}
+          // The replayed move belongs to whoever owns the played pit — the
+          // server state's `current` has already flipped to the next player.
+          handPlayer={lastMove >= 0 ? ownerOf(lastMove) : gameState.current}
         />
 
         <AppText variant="caption" muted align="center" style={styles.hint}>
