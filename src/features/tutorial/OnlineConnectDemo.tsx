@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(212,163,44,0.14)',
   },
   mockRowMuted: { opacity: 0.5 },
-  mockRowText: { flex: 1, fontSize: 10, lineHeight: 13 },
+  mockRowText: { flex: 1, fontSize: 10, lineHeight: 15, includeFontPadding: false },
   mockRowLine: {
     flex: 1,
     height: 4,
@@ -469,11 +469,13 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(228,193,115,0.45)',
   },
-  miniBoardRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 3 },
+  miniBoardRow: { flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' },
   miniPit: {
-    flex: 1,
-    aspectRatio: 1,
-    maxWidth: 15,
+    // Fixed square: flex+aspectRatio distorts on Android's Yoga rounding
+    // (pits render oval and the seed dots spill), while iOS happened to
+    // resolve it square. Deterministic size renders identically on both.
+    width: 14,
+    height: 14,
     borderRadius: 999,
     backgroundColor: '#1B110A',
     borderWidth: StyleSheet.hairlineWidth,
@@ -484,6 +486,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 1.5,
     gap: 1,
+    overflow: 'hidden',
   },
   miniSeed: {
     width: 3.5,

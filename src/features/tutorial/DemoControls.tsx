@@ -54,6 +54,11 @@ export function CtrlButton({
         variant="small"
         color={primary ? theme.colors.textOnGold : theme.colors.textMuted}
         numberOfLines={1}
+        // Long Tamil labels must shrink to fit, never ellipsize ("மீண்…").
+        // No-op wherever the label already fits (iOS/English unchanged).
+        adjustsFontSizeToFit
+        minimumFontScale={0.6}
+        style={styles.ctrlLabel}
       >
         {label}
       </AppText>
@@ -151,6 +156,12 @@ const styles = StyleSheet.create({
     ...(theme.shadows.gold as object),
   },
   ctrlDisabled: { opacity: 0.4 },
+  ctrlLabel: {
+    textAlign: 'center',
+    // Android crops tight Tamil glyph stacks without explicit padding room.
+    includeFontPadding: false,
+    paddingHorizontal: 1,
+  },
   speedRow: {
     flexDirection: 'row',
     alignItems: 'center',

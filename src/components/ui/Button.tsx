@@ -84,7 +84,16 @@ export function Button({
         ) : (
           <>
             {icon ? <Icon name={icon} size={20} color={textColor} /> : null}
-            <AppText variant="button" color={textColor} numberOfLines={1}>
+            <AppText
+              variant="button"
+              color={textColor}
+              numberOfLines={1}
+              // Long Tamil labels shrink to fit instead of ellipsizing;
+              // no-op for labels that already fit (iOS/English unchanged).
+              adjustsFontSizeToFit
+              minimumFontScale={0.65}
+              style={styles.label}
+            >
               {label}
             </AppText>
           </>
@@ -108,6 +117,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: theme.spacing.sm,
+    // The text must be able to measure against a bounded width for
+    // adjustsFontSizeToFit; without this Android lets it overflow-crop.
+    maxWidth: '100%',
+  },
+  label: {
+    textAlign: 'center',
+    flexShrink: 1,
+    // Tamil ascenders/descenders clip on Android without explicit room.
+    includeFontPadding: false,
   },
   secondary: {
     borderWidth: 1.5,

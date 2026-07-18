@@ -44,7 +44,14 @@ export function OptionCard({
           </View>
         ) : null}
         <View style={styles.texts}>
-          <AppText variant="title" numberOfLines={1}>
+          <AppText
+            variant="title"
+            numberOfLines={1}
+            // Long Tamil titles (Settings rows etc.) shrink instead of
+            // ellipsizing; no-op where the title already fits.
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
             {title}
           </AppText>
           {subtitle ? (

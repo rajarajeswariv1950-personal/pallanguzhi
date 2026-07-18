@@ -33,17 +33,21 @@ export const lineHeights = {
 } as const;
 
 export const typography = {
-  display: { fontSize: fontSizes.display, fontWeight: '800', letterSpacing: 0.5 },
-  h1: { fontSize: fontSizes.xxxl, fontWeight: '800', letterSpacing: 0.4 },
-  h2: { fontSize: fontSizes.xxl, fontWeight: '700', letterSpacing: 0.3 },
-  h3: { fontSize: fontSizes.xl, fontWeight: '700' },
-  title: { fontSize: fontSizes.lg, fontWeight: '600' },
-  body: { fontSize: fontSizes.md, fontWeight: '400' },
-  bodyStrong: { fontSize: fontSizes.md, fontWeight: '600' },
-  caption: { fontSize: fontSizes.sm, fontWeight: '400' },
-  small: { fontSize: fontSizes.xs, fontWeight: '500', letterSpacing: 0.5 },
-  button: { fontSize: fontSizes.lg, fontWeight: '700', letterSpacing: 0.5 },
-  overline: { fontSize: fontSizes.xs, fontWeight: '700', letterSpacing: 2, textTransform: 'uppercase' },
+  // Explicit lineHeights (~1.35×) reserve room for Tamil conjunct stacks:
+  // Android's default line box is tighter than iOS's and crops ascenders/
+  // descenders (எ்…, கு…) without them. Values are ≥ both platforms'
+  // defaults, so Latin/iOS rendering is visually unchanged.
+  display: { fontSize: fontSizes.display, lineHeight: 62, fontWeight: '800', letterSpacing: 0.5 },
+  h1: { fontSize: fontSizes.xxxl, lineHeight: 49, fontWeight: '800', letterSpacing: 0.4 },
+  h2: { fontSize: fontSizes.xxl, lineHeight: 38, fontWeight: '700', letterSpacing: 0.3 },
+  h3: { fontSize: fontSizes.xl, lineHeight: 30, fontWeight: '700' },
+  title: { fontSize: fontSizes.lg, lineHeight: 25, fontWeight: '600' },
+  body: { fontSize: fontSizes.md, lineHeight: 23, fontWeight: '400' },
+  bodyStrong: { fontSize: fontSizes.md, lineHeight: 23, fontWeight: '600' },
+  caption: { fontSize: fontSizes.sm, lineHeight: 20, fontWeight: '400' },
+  small: { fontSize: fontSizes.xs, lineHeight: 17, fontWeight: '500', letterSpacing: 0.5 },
+  button: { fontSize: fontSizes.lg, lineHeight: 25, fontWeight: '700', letterSpacing: 0.5 },
+  overline: { fontSize: fontSizes.xs, lineHeight: 17, fontWeight: '700', letterSpacing: 2, textTransform: 'uppercase' },
 } satisfies Record<string, TextStyle>;
 
 export type TypographyToken = keyof typeof typography;
