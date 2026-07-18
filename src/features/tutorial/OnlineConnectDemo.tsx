@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useAnimatedStyle,
@@ -29,6 +29,14 @@ import { theme } from '@/theme';
  */
 
 const DEMO_CODE = '4F7K2';
+
+// Android: the two mini phones stack vertically at FULL width (your phone,
+// then a downward share arrow, then the friend's phone). Side-by-side each
+// phone was ~half the card wide, which squeezed the Tamil "Create Room" /
+// "Join Room" rows and the room-code chip into cramped, broken text. Full
+// width lets those labels render whole at a readable size. iOS keeps the
+// original side-by-side stage (renders fine there).
+const STACK_STAGE = Platform.OS === 'android';
 
 type PhoneScene =
   | 'modes' // mode list with Online highlighted
@@ -125,7 +133,7 @@ export function OnlineConnectDemo() {
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.stage}>
+      <View style={STACK_STAGE ? styles.stageStacked : styles.stage}>
         <Phone label={t('tutorial.odYou')} scene={step.you} you />
         <ShareLane active={!!step.sharing} />
         <Phone label={t('tutorial.odFriend')} scene={step.friend} />
@@ -284,12 +292,15 @@ function ShareLane({ active }: { active: boolean }) {
   }, [active, slide]);
   const chipStyle = useAnimatedStyle(() => ({
     opacity: active ? 0.35 + slide.value * 0.65 : 0,
-    transform: [{ translateX: (slide.value - 0.5) * 26 }],
+    // Stacked stage (Android): the code travels downward, phone to phone.
+    transform: STACK_STAGE
+      ? [{ translateY: (slide.value - 0.5) * 14 }]
+      : [{ translateX: (slide.value - 0.5) * 26 }],
   }));
   return (
-    <View style={styles.shareLane}>
+    <View style={STACK_STAGE ? styles.shareLaneStacked : styles.shareLane}>
       <Icon
-        name="arrow-forward"
+        name={STACK_STAGE ? 'arrow-down' : 'arrow-forward'}
         size={16}
         color={active ? theme.colors.primaryLight : theme.colors.border}
       />
@@ -364,10 +375,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: theme.spacing.xs,
   },
+  // Android: phones stacked full-width so Tamil labels & the code chip
+  // render whole and roomy.
+  stageStacked: {
+    alignItems: 'stretch',
+    gap: theme.spacing.sm,
+  },
   phoneCol: { flex: 1, alignItems: 'stretch', gap: theme.spacing.xs },
   phone: {
     alignSelf: 'stretch',
-    minHeight: 128,
+    // Stacked full-width phones (Android) need less height — the rows
+    // inside are wider, so the demo stays compact on one screen.
+    minHeight: STACK_STAGE ? 104 : 128,
     borderRadius: theme.radii.lg,
     borderWidth: 2,
     borderColor: 'rgba(212,163,44,0.55)',
@@ -409,7 +428,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(212,163,44,0.14)',
   },
   mockRowMuted: { opacity: 0.5 },
-  mockRowText: { flex: 1, fontSize: 10, lineHeight: 15, includeFontPadding: false },
+  // Android (full-width stacked phones) affords a larger, clearly readable
+  // size for the Tamil "Create Room" / "Join Room" rows; the tiny original
+  // size stays only where the phones sit side by side (iOS).
+  mockRowText: STACK_STAGE
+    ? { flex: 1, fontSize: 13, lineHeight: 20, includeFontPadding: false }
+    : { flex: 1, fontSize: 10, lineHeight: 15, includeFontPadding: false },
   mockRowLine: {
     flex: 1,
     height: 4,
@@ -424,14 +448,25 @@ const styles = StyleSheet.create({
     gap: 4,
     borderRadius: theme.radii.pill,
     backgroundColor: theme.colors.primary,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
+    paddingVertical: STACK_STAGE ? 5 : 3,
+    paddingHorizontal: STACK_STAGE ? 12 : 8,
   },
-  codeText: { fontWeight: '800', letterSpacing: 1 },
+  // The room code is the hero of this demo — on the full-width Android
+  // stage it gets a clearly readable size with airy letterspacing.
+  codeText: STACK_STAGE
+    ? { fontWeight: '800', letterSpacing: 2, fontSize: 14, lineHeight: 20 }
+    : { fontWeight: '800', letterSpacing: 1 },
   shareLane: {
     width: 54,
     alignItems: 'center',
     gap: 4,
+  },
+  shareLaneStacked: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    minHeight: 28,
   },
   miniBoardWrap: {
     alignSelf: 'stretch',
