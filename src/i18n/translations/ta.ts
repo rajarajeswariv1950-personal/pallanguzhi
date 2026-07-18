@@ -58,6 +58,9 @@ const ta: TranslationSchema = {
     welcome: 'வரவேற்கிறோம்',
     welcomeName: 'வரவேற்கிறோம், {{name}}',
     exitApp: 'செயலியிலிருந்து வெளியேறு',
+    // Dialog confirm button — kept to a single short word so it can never
+    // truncate or wrap awkwardly inside the confirm dialog.
+    exitAction: 'வெளியேறு',
     exitTitle: 'செயலியிலிருந்து வெளியேறவா?',
     exitSubtitle: 'விளையாட்டை மூடி உங்கள் சாதனத்திற்குத் திரும்பவும்',
     exitConfirm: 'செயலி மூடப்படும். உங்கள் அமைப்புகளும் திறப்புகளும் சேமிக்கப்பட்டுள்ளன.',
@@ -241,7 +244,8 @@ const ta: TranslationSchema = {
     quickMatchDesc: 'உடனடியாக ஒரு அறையைத் திறந்து நண்பரை அழையுங்கள்',
     twoPlayerNote: 'அறைகள் தனிப்பட்டவை; சரியாக 2 வீரர்களை மட்டுமே கொள்ளும்.',
     yourName: 'உங்கள் பெயர்',
-    namePlaceholder: 'உங்கள் பெயரை உள்ளிடவும்',
+    // Short enough to stay fully visible in a single-line input on phones.
+    namePlaceholder: 'பெயரை உள்ளிடவும்',
     levelTitle: 'ஆட்ட நிலை (நீங்கள் உருவாக்கும் அறைகளுக்கு)',
   },
   createRoom: {
@@ -354,7 +358,9 @@ const ta: TranslationSchema = {
   profile: {
     title: 'சுயவிவரம்',
     name: 'வீரர் பெயர்',
-    namePlaceholder: 'உங்கள் பெயரை உள்ளிடவும்',
+    // Short enough to stay fully visible in a single-line input on phones;
+    // the field label above already says whose name it is.
+    namePlaceholder: 'பெயரை உள்ளிடவும்',
     save: 'சேமி',
     saved: 'சேமிக்கப்பட்டது!',
     stats: 'புள்ளிவிவரங்கள்',

@@ -82,7 +82,9 @@ export function BrandedHeader({ title, showBack = true, onBack }: BrandedHeaderP
             </View>
             <View style={styles.navCenter}>
               {title ? (
-                <AppText variant="h3" align="center" numberOfLines={1}>
+                // Two lines so long Tamil screen titles render whole at
+                // full size instead of ellipsizing ("எப்படி விளையா…").
+                <AppText variant="h3" align="center" numberOfLines={2}>
                   {title}
                 </AppText>
               ) : null}
@@ -92,7 +94,7 @@ export function BrandedHeader({ title, showBack = true, onBack }: BrandedHeaderP
         )}
 
         {singleRow && title ? (
-          <AppText variant="caption" muted numberOfLines={1} style={styles.singleTitle}>
+          <AppText variant="caption" muted numberOfLines={2} style={styles.singleTitle}>
             {title}
           </AppText>
         ) : null}

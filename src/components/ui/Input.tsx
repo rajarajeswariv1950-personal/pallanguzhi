@@ -1,4 +1,4 @@
-import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
+import { Platform, StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 import { AppText } from './Text';
 import { theme } from '@/theme';
 
@@ -29,7 +29,17 @@ const styles = StyleSheet.create({
   wrap: { gap: theme.spacing.xs },
   label: { marginLeft: theme.spacing.xs },
   input: {
-    height: 52,
+    // Android needs a taller, vertically-centred line box: its default
+    // TextInput crops Tamil ascenders/descenders (உ…, ்…) at a fixed 52.
+    // iOS keeps the exact original metrics — untouched.
+    ...Platform.select({
+      android: {
+        minHeight: 56,
+        paddingVertical: theme.spacing.sm,
+        textAlignVertical: 'center' as const,
+      },
+      default: { height: 52 },
+    }),
     borderRadius: theme.radii.md,
     borderWidth: 1.5,
     borderColor: theme.colors.border,

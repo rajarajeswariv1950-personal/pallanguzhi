@@ -1,11 +1,17 @@
 import { useState } from 'react';
-import { StyleSheet, View, Alert } from 'react-native';
+import { StyleSheet, View, Alert, Platform } from 'react-native';
 import { AppText, Badge, Button, Card, Divider, Icon, Input } from '@/components';
 import { useEntitlementStore } from '@/store/entitlementStore';
 import { usePremium } from './usePremium';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
 import { feedback, haptic, tapFeedback } from '@/services/feedback';
 import { theme } from '@/theme';
+
+// Android: the badge sits on its own line under the title so the Tamil
+// title ("பிரீமியம் அணுகல்") keeps the full row width and wraps only at
+// word boundaries — side-by-side it got squeezed and broke mid-word.
+// iOS keeps the original single-row header (renders fine there).
+const STACK_BADGE = Platform.OS === 'android';
 
 /**
  * Premium management card (Settings) — for users who ALREADY unlocked.
@@ -39,8 +45,11 @@ export function PremiumManageCard() {
           <AppText variant="title" style={styles.headerText}>
             {t('premiumManage.title')}
           </AppText>
-          <Badge label={t('premium.locked')} tone="neutral" />
+          {!STACK_BADGE && <Badge label={t('premium.locked')} tone="neutral" />}
         </View>
+        {STACK_BADGE ? (
+          <Badge label={t('premium.locked')} tone="neutral" style={styles.badgeStacked} />
+        ) : null}
         <AppText variant="small" muted style={styles.body}>
           {t('premiumManage.lockedHint')}
         </AppText>
@@ -93,8 +102,11 @@ export function PremiumManageCard() {
         <AppText variant="title" style={styles.headerText}>
           {t('premiumManage.title')}
         </AppText>
-        <Badge label={t('premiumManage.unlocked')} tone="gold" />
+        {!STACK_BADGE && <Badge label={t('premiumManage.unlocked')} tone="gold" />}
       </View>
+      {STACK_BADGE ? (
+        <Badge label={t('premiumManage.unlocked')} tone="gold" style={styles.badgeStacked} />
+      ) : null}
       <AppText variant="small" muted style={styles.body}>
         {t('premiumManage.status', { source: sourceLabel })}
       </AppText>
@@ -186,6 +198,11 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   headerText: { flex: 1 },
+  // Aligned with the title text (icon 22 + header gap) on its own line.
+  badgeStacked: {
+    marginTop: theme.spacing.sm,
+    marginLeft: 22 + theme.spacing.md,
+  },
   body: { marginTop: theme.spacing.sm },
   divider: { marginVertical: theme.spacing.md },
   actions: { gap: theme.spacing.sm },

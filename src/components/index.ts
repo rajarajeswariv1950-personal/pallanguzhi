@@ -15,6 +15,8 @@ export { OptionCard } from './ui/OptionCard';
 export type { OptionCardProps } from './ui/OptionCard';
 export { Input } from './ui/Input';
 export type { InputProps } from './ui/Input';
+export { ConfirmDialog } from './ui/ConfirmDialog';
+export type { ConfirmDialogProps } from './ui/ConfirmDialog';
 
 // Branding
 export { EmblemBadge } from './branding/EmblemBadge';

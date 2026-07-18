@@ -1,4 +1,4 @@
-import { View, StyleSheet, Switch } from 'react-native';
+import { View, StyleSheet, Switch, Platform } from 'react-native';
 import { BrandedScreen, Card, OptionCard, AppText, Icon, Divider, Button } from '@/components';
 import type { IconName } from '@/components';
 import { PressableScale } from '@/components/anim/PressableScale';
@@ -129,13 +129,16 @@ function MoveSpeedRow() {
           {t('settings.moveSpeed')}
         </AppText>
       </View>
-      <View style={styles.speedRow}>
+      {/* Android: the three options stack as full-width rows — side by side
+          they overflowed the screen and squeezed the Tamil words. iOS keeps
+          the original side-by-side row (renders fine there). */}
+      <View style={Platform.OS === 'android' ? styles.speedColumn : styles.speedRow}>
         {MOVE_SPEEDS.map((s) => (
           <Button
             key={s}
             label={t(`settings.moveSpeed_${s}`)}
             size="md"
-            fullWidth={false}
+            fullWidth={Platform.OS === 'android'}
             variant={moveSpeed === s ? 'primary' : 'secondary'}
             onPress={() => {
               tapFeedback();
@@ -151,7 +154,8 @@ function MoveSpeedRow() {
   );
 }
 
-/** Mute is the Music toggle above; this adds friendly volume down / up steppers. */function MusicVolumeRow() {
+/** Mute is the Music toggle above; this adds friendly volume down / up steppers. */
+function MusicVolumeRow() {
   const { t } = useAppTranslation();
   const music = useSettingsStore((s) => s.music);
   const musicVolume = useSettingsStore((s) => s.musicVolume);
@@ -167,35 +171,63 @@ function MoveSpeedRow() {
     adjust(delta);
   };
 
+  // Android: label on its own full-width line, stepper on the next — beside
+  // the stepper the Tamil label ("இசை ஒலியளவு") got squeezed and broke
+  // mid-word. Full width lets it sit whole on one line. iOS keeps the
+  // original single-row layout (renders fine there).
+  const stacked = Platform.OS === 'android';
+
+  const stepperControls = (
+    <>
+      <PressableScale
+        onPress={canDown ? () => step(-VOLUME_STEP) : undefined}
+        disabled={!canDown}
+        accessibilityRole="button"
+        accessibilityLabel={t('settings.volumeDown')}
+        style={[styles.stepBtn, !canDown && styles.stepBtnDisabled]}
+      >
+        <Icon name="remove" size={20} color={theme.colors.primaryDeep} />
+      </PressableScale>
+      <AppText
+        variant="bodyStrong"
+        align="center"
+        style={stacked ? styles.stepValueStacked : styles.stepValue}
+      >
+        {muted ? t('settings.muted') : `${pct}%`}
+      </AppText>
+      <PressableScale
+        onPress={canUp ? () => step(VOLUME_STEP) : undefined}
+        disabled={!canUp}
+        accessibilityRole="button"
+        accessibilityLabel={t('settings.volumeUp')}
+        style={[styles.stepBtn, !canUp && styles.stepBtnDisabled]}
+      >
+        <Icon name="add" size={20} color={theme.colors.primaryDeep} />
+      </PressableScale>
+    </>
+  );
+
+  if (stacked) {
+    return (
+      <View style={muted ? styles.rowMuted : undefined}>
+        <View style={styles.settingRow}>
+          <Icon name="volume-medium" size={22} color={theme.colors.primaryLight} />
+          <AppText variant="title" style={styles.settingLabel}>
+            {t('settings.musicVolume')}
+          </AppText>
+        </View>
+        <View style={styles.stepperStacked}>{stepperControls}</View>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.settingRow, muted && styles.rowMuted]}>
       <Icon name="volume-medium" size={22} color={theme.colors.primaryLight} />
       <AppText variant="title" style={styles.settingLabel}>
         {t('settings.musicVolume')}
       </AppText>
-      <View style={styles.stepper}>
-        <PressableScale
-          onPress={canDown ? () => step(-VOLUME_STEP) : undefined}
-          disabled={!canDown}
-          accessibilityRole="button"
-          accessibilityLabel={t('settings.volumeDown')}
-          style={[styles.stepBtn, !canDown && styles.stepBtnDisabled]}
-        >
-          <Icon name="remove" size={20} color={theme.colors.primaryDeep} />
-        </PressableScale>
-        <AppText variant="bodyStrong" align="center" style={styles.stepValue}>
-          {muted ? t('settings.muted') : `${pct}%`}
-        </AppText>
-        <PressableScale
-          onPress={canUp ? () => step(VOLUME_STEP) : undefined}
-          disabled={!canUp}
-          accessibilityRole="button"
-          accessibilityLabel={t('settings.volumeUp')}
-          style={[styles.stepBtn, !canUp && styles.stepBtnDisabled]}
-        >
-          <Icon name="add" size={20} color={theme.colors.primaryDeep} />
-        </PressableScale>
-      </View>
+      <View style={styles.stepper}>{stepperControls}</View>
     </View>
   );
 }
@@ -234,10 +266,24 @@ const styles = StyleSheet.create({
   },
   stepBtnDisabled: { opacity: 0.4 },
   stepValue: { minWidth: 54 },
+  // Stacked (Android) stepper: full-width row under the label; the value
+  // spans the middle so even the long muted text ("ஒலி நிறுத்தப்பட்டது")
+  // has room to sit whole, wrapping only at word boundaries if ever needed.
+  stepperStacked: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+  },
+  stepValueStacked: { flex: 1 },
   rowDivider: { marginVertical: theme.spacing.sm },
   version: { marginTop: theme.spacing.lg },
   speedRow: {
     flexDirection: 'row',
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+  },
+  speedColumn: {
     gap: theme.spacing.sm,
     marginTop: theme.spacing.sm,
   },

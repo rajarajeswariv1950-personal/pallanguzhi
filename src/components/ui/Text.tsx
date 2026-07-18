@@ -22,6 +22,9 @@ export function AppText({
 }: AppTextProps) {
   return (
     <RNText
+      // Tamil must never hyphen-break mid-word on Android (no-op on iOS).
+      // Callers can still override via {...rest}.
+      android_hyphenationFrequency="none"
       {...rest}
       style={[
         theme.typography[variant],

@@ -1,11 +1,16 @@
 import { useState } from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
+import { Linking, Platform, StyleSheet, View } from 'react-native';
 import { AppText, Badge, Button, Card, Divider, Icon, Input } from '@/components';
 import { PAYMENT_LINK_URL, PREMIUM_PRICING } from './entitlements';
 import { useEntitlementStore } from '@/store/entitlementStore';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
 import { feedback, haptic } from '@/services/feedback';
 import { theme } from '@/theme';
+
+// Android: badge moves inside the title column (below the subtitle) so the
+// Tamil title keeps full width and wraps only at word boundaries — beside
+// the badge it got squeezed and broke words mid-glyph. iOS is unchanged.
+const STACK_BADGE = Platform.OS === 'android';
 
 /**
  * Premium lock card — SAFE FOUNDATION ONLY (no live payments).
@@ -52,8 +57,11 @@ export function PremiumLockCard() {
           <AppText variant="caption" muted style={styles.subtitle}>
             {t('premium.subtitle')}
           </AppText>
+          {STACK_BADGE ? (
+            <Badge label={t('premium.lockedBadge')} tone="gold" style={styles.badgeStacked} />
+          ) : null}
         </View>
-        <Badge label={t('premium.lockedBadge')} tone="gold" />
+        {!STACK_BADGE && <Badge label={t('premium.lockedBadge')} tone="gold" />}
       </View>
 
       <AppText variant="bodyStrong" align="center" color={theme.colors.primaryLight} style={styles.price}>
@@ -165,6 +173,7 @@ const styles = StyleSheet.create({
   },
   headerText: { flex: 1 },
   subtitle: { marginTop: 2 },
+  badgeStacked: { marginTop: theme.spacing.sm },
   price: { marginVertical: theme.spacing.md },
   note: { marginTop: theme.spacing.sm },
   divider: { marginVertical: theme.spacing.md },

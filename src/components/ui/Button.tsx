@@ -43,6 +43,8 @@ export function Button({
       : variant === 'danger'
         ? theme.colors.textInverse
         : theme.colors.primaryLight;
+  // minHeight (not height) so a wrapped two-line Tamil label can grow the
+  // button gracefully; single-line buttons keep the exact same size.
   const height = size === 'lg' ? 56 : 46;
   const isInteractive = !disabled && !loading;
 
@@ -61,7 +63,7 @@ export function Button({
       accessibilityState={{ disabled: !isInteractive, busy: loading }}
       style={[
         styles.base,
-        { height },
+        { minHeight: height },
         fullWidth ? styles.fullWidth : null,
         variant === 'secondary' ? styles.secondary : null,
         variant === 'ghost' ? styles.ghost : null,
@@ -87,11 +89,9 @@ export function Button({
             <AppText
               variant="button"
               color={textColor}
-              numberOfLines={1}
-              // Long Tamil labels shrink to fit instead of ellipsizing;
-              // no-op for labels that already fit (iOS/English unchanged).
-              adjustsFontSizeToFit
-              minimumFontScale={0.65}
+              // Long Tamil labels wrap to a second line at full size —
+              // readable and premium; never shrunk-tiny, never ellipsized.
+              numberOfLines={2}
               style={styles.label}
             >
               {label}
@@ -110,6 +110,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.xs,
   },
   fullWidth: { alignSelf: 'stretch' },
   content: {

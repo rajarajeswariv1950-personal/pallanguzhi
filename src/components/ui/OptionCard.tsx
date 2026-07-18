@@ -1,10 +1,15 @@
 import { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { Card } from './Card';
 import { AppText } from './Text';
 import { Icon, IconName } from './Icon';
 import { tapFeedback } from '@/services/feedback';
 import { theme } from '@/theme';
+
+// Android: no line caps — long Tamil titles/subtitles show in full, wrapping
+// at word boundaries (never ellipsized mid-sentence like "…சாதனத்…").
+// iOS keeps the original 2-line cap (renders fine there).
+const MAX_LINES = Platform.OS === 'android' ? undefined : 2;
 
 export interface OptionCardProps {
   title: string;
@@ -46,16 +51,14 @@ export function OptionCard({
         <View style={styles.texts}>
           <AppText
             variant="title"
-            numberOfLines={1}
-            // Long Tamil titles (Settings rows etc.) shrink instead of
-            // ellipsizing; no-op where the title already fits.
-            adjustsFontSizeToFit
-            minimumFontScale={0.7}
+            // Long Tamil titles wrap to further full-size lines — readable
+            // and premium; never shrunk-tiny, never broken mid-word.
+            numberOfLines={MAX_LINES}
           >
             {title}
           </AppText>
           {subtitle ? (
-            <AppText variant="caption" muted numberOfLines={2} style={styles.subtitle}>
+            <AppText variant="caption" muted numberOfLines={MAX_LINES} style={styles.subtitle}>
               {subtitle}
             </AppText>
           ) : null}

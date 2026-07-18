@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { View, StyleSheet, BackHandler, Platform, Alert } from 'react-native';
-import { BrandedScreen, BrandHero, Button, OptionCard, AppText, FadeSlideIn } from '@/components';
+import { BrandedScreen, BrandHero, Button, OptionCard, AppText, FadeSlideIn, ConfirmDialog } from '@/components';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
 import { useProfileStore } from '@/store/profileStore';
 import type { RootStackScreenProps } from '@/navigation/types';
@@ -8,16 +9,17 @@ import { theme } from '@/theme';
 export function HomeScreen({ navigation }: RootStackScreenProps<'Home'>) {
   const { t } = useAppTranslation();
   const name = useProfileStore((s) => s.name);
+  const [exitVisible, setExitVisible] = useState(false);
 
   // Explicit way OUT of the app. Android supports a true programmatic exit;
   // iOS forbids apps closing themselves (App Store rule), so there the
   // dialog explains the swipe-up gesture instead of silently doing nothing.
+  // Android uses the themed in-app ConfirmDialog (NOT the native Alert):
+  // native alert buttons truncate long Tamil labels and were unreliable to
+  // tap; the in-app dialog shows the full Tamil text and always fires.
   const exitApp = () => {
     if (Platform.OS === 'android') {
-      Alert.alert(t('home.exitTitle'), t('home.exitConfirm'), [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('home.exitApp'), style: 'destructive', onPress: () => BackHandler.exitApp() },
-      ]);
+      setExitVisible(true);
     } else {
       Alert.alert(t('home.exitTitle'), t('home.exitIosHint'), [{ text: t('common.confirm') }]);
     }
@@ -65,6 +67,20 @@ export function HomeScreen({ navigation }: RootStackScreenProps<'Home'>) {
           </FadeSlideIn>
         </View>
       </View>
+
+      <ConfirmDialog
+        visible={exitVisible}
+        title={t('home.exitTitle')}
+        message={t('home.exitConfirm')}
+        confirmLabel={t('home.exitAction')}
+        cancelLabel={t('common.cancel')}
+        destructive
+        onConfirm={() => {
+          setExitVisible(false);
+          BackHandler.exitApp();
+        }}
+        onCancel={() => setExitVisible(false)}
+      />
     </BrandedScreen>
   );
 }

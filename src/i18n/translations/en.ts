@@ -56,6 +56,8 @@ export const en = {
     welcome: 'Welcome',
     welcomeName: 'Welcome, {{name}}',
     exitApp: 'Exit App',
+    /** Short label for the exit dialog's confirm button — long labels truncate in dialogs. */
+    exitAction: 'Exit',
     exitTitle: 'Exit the app?',
     exitSubtitle: 'Close the game and return to your device',
     exitConfirm: 'The app will close. Your settings and unlocks are saved.',

@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/ui/Text';
 import { Icon, IconName } from '@/components/ui/Icon';
 import { PressableScale } from '@/components/anim/PressableScale';
@@ -15,6 +15,11 @@ export const DEMO_SPEEDS = [
 ];
 /** Index of 0.75× — a gentle, beginner-friendly default pace. */
 export const DEMO_DEFAULT_SPEED = 1;
+
+// Android: split the transport into two rows (play/pause alone, then the
+// three step buttons) so every Tamil word gets a whole line and is never
+// broken mid-word. iOS keeps the original one-row strip (renders fine).
+const STACK_TRANSPORT = Platform.OS === 'android';
 
 export function CtrlButton({
   icon,
@@ -53,11 +58,10 @@ export function CtrlButton({
       <AppText
         variant="small"
         color={primary ? theme.colors.textOnGold : theme.colors.textMuted}
-        numberOfLines={1}
-        // Long Tamil labels must shrink to fit, never ellipsize ("மீண்…").
-        // No-op wherever the label already fits (iOS/English unchanged).
-        adjustsFontSizeToFit
-        minimumFontScale={0.6}
+        // Long Tamil labels wrap at word boundaries at FULL size — readable
+        // and premium. Never shrink to tiny; on Android never ellipsize
+        // either (the row layouts guarantee word-per-line room).
+        numberOfLines={STACK_TRANSPORT ? undefined : 2}
         style={styles.ctrlLabel}
       >
         {label}
@@ -99,19 +103,38 @@ export function DemoTransport({
   onFaster: () => void;
 }) {
   const { t } = useAppTranslation();
+  const playPause = (
+    <CtrlButton
+      icon={playing ? 'pause' : 'play'}
+      label={playing ? t('tutorial.pause') : t('tutorial.play')}
+      onPress={onPlayPause}
+      primary
+    />
+  );
   return (
     <>
-      <View style={styles.transport}>
-        <CtrlButton icon="reload" label={t('tutorial.restart')} onPress={onRestart} disabled={atStart && !playing} />
-        <CtrlButton icon="play-skip-back" label={t('tutorial.rewind')} onPress={onRewind} disabled={atStart} />
-        <CtrlButton
-          icon={playing ? 'pause' : 'play'}
-          label={playing ? t('tutorial.pause') : t('tutorial.play')}
-          onPress={onPlayPause}
-          primary
-        />
-        <CtrlButton icon="play-skip-forward" label={t('tutorial.forward')} onPress={onForward} disabled={atEnd} />
-      </View>
+      {STACK_TRANSPORT ? (
+        // Android: play/pause on its own full-width row, the three step
+        // buttons sharing the next row. Four-across left each button too
+        // narrow for single Tamil words ("மீண்டும்", "அடுத்தது"), which
+        // Android then broke mid-word; three-across fits every word whole,
+        // wrapping multi-word labels only at the space.
+        <>
+          <View style={styles.transport}>{playPause}</View>
+          <View style={styles.transport}>
+            <CtrlButton icon="reload" label={t('tutorial.restart')} onPress={onRestart} disabled={atStart && !playing} />
+            <CtrlButton icon="play-skip-back" label={t('tutorial.rewind')} onPress={onRewind} disabled={atStart} />
+            <CtrlButton icon="play-skip-forward" label={t('tutorial.forward')} onPress={onForward} disabled={atEnd} />
+          </View>
+        </>
+      ) : (
+        <View style={styles.transport}>
+          <CtrlButton icon="reload" label={t('tutorial.restart')} onPress={onRestart} disabled={atStart && !playing} />
+          <CtrlButton icon="play-skip-back" label={t('tutorial.rewind')} onPress={onRewind} disabled={atStart} />
+          {playPause}
+          <CtrlButton icon="play-skip-forward" label={t('tutorial.forward')} onPress={onForward} disabled={atEnd} />
+        </View>
+      )}
 
       <View style={styles.speedRow}>
         <CtrlButton icon="remove" label={t('tutorial.slower')} onPress={onSlower} disabled={speed <= 0} compact />
@@ -138,7 +161,8 @@ const styles = StyleSheet.create({
   },
   ctrl: {
     flex: 1,
-    minHeight: 58,
+    // Room for icon + up to two full-size Tamil label lines.
+    minHeight: 74,
     borderRadius: theme.radii.md,
     alignItems: 'center',
     justifyContent: 'center',
@@ -149,7 +173,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: theme.colors.border,
   },
-  ctrlCompact: { flex: 0, minWidth: 64 },
+  ctrlCompact: { flex: 0, minWidth: 84 },
   ctrlPrimary: {
     backgroundColor: theme.colors.primary,
     borderColor: theme.colors.primaryLight,

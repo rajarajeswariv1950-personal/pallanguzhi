@@ -166,7 +166,7 @@ function Phone({ label, scene, you = false }: { label: string; scene: PhoneScene
           <PhoneScreen scene={scene} you={you} />
         </View>
       </View>
-      <AppText variant="small" muted align="center" numberOfLines={1}>
+      <AppText variant="small" muted align="center" numberOfLines={2}>
         {label}
       </AppText>
     </View>
@@ -242,7 +242,7 @@ function MockRow({
         <AppText
           variant="small"
           color={active ? theme.colors.primaryLight : theme.colors.textMuted}
-          numberOfLines={1}
+          numberOfLines={2}
           style={styles.mockRowText}
         >
           {label}
