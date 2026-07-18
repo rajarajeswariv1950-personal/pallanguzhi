@@ -12,7 +12,7 @@ import { AppText } from '@/components/ui/Text';
 import { ownerOf, type MoveFrame, type Player } from '@/features/game/engine';
 import { BOTTOM_INDICES, TOP_INDICES } from '@/features/game/boardView';
 import { PitFace, SEED_COLORS } from '@/features/game/components/PitVisual';
-import { SOWING_HAND_ENABLED, SowingHandOverlay } from '@/features/game/components/SowingHandOverlay';
+import { SOWING_HAND_ENABLED, SowingHandOverlay, SowingHandPrewarm } from '@/features/game/components/SowingHandOverlay';
 import { usePitCenters, type PitCenterRegistry } from '@/features/game/components/usePitCenters';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
 import { theme } from '@/theme';
@@ -52,7 +52,7 @@ export function GameBoard({
 
   return (
     <View ref={boardRef} onLayout={onBoardLayout} style={styles.board}>
-      {/* Layered walnut: warm diagonal base + top sheen for a polished, carved look. */}
+      {/* Layered rosewood: warm diagonal base + top sheen for a polished, carved look. */}
       <LinearGradient
         colors={theme.gradients.board}
         start={{ x: 0.1, y: 0 }}
@@ -66,8 +66,43 @@ export function GameBoard({
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
-      {/* Carved inner frame + brass corner accents for a premium boarded look. */}
+      {/* Hand-planed wood grain: long, faint streaks that follow the plank. */}
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        {GRAIN_STREAKS.map((g, i) => (
+          <View
+            key={i}
+            style={{
+              position: 'absolute',
+              top: g.top,
+              left: g.left,
+              right: g.right,
+              height: g.height,
+              borderRadius: 999,
+              backgroundColor: g.light
+                ? `rgba(224,178,120,${g.opacity})`
+                : `rgba(12,5,2,${g.opacity})`,
+            }}
+          />
+        ))}
+      </View>
+      {/* Edge vignette so the slab reads thick and hand-oiled. */}
+      <LinearGradient
+        colors={['rgba(16,8,3,0.45)', 'rgba(16,8,3,0)', 'rgba(16,8,3,0)', 'rgba(16,8,3,0.45)']}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      <LinearGradient
+        colors={['rgba(16,8,3,0.32)', 'rgba(16,8,3,0)', 'rgba(16,8,3,0)', 'rgba(16,8,3,0.38)']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      {/* Double gold inlay + brass corner accents for a royal, carved look. */}
       <View pointerEvents="none" style={styles.innerFrame} />
+      <View pointerEvents="none" style={styles.inlayFrame} />
       <View pointerEvents="none" style={[styles.corner, styles.cornerTL]} />
       <View pointerEvents="none" style={[styles.corner, styles.cornerTR]} />
       <View pointerEvents="none" style={[styles.corner, styles.cornerBL]} />
@@ -86,7 +121,11 @@ export function GameBoard({
           registry={pitCenters}
           layoutVersion={layoutVersion}
         />
-        <View style={styles.midSeam} pointerEvents="none" />
+        {/* Carved center groove: shadowed cut + catch-light below it. */}
+        <View style={styles.midSeamWrap} pointerEvents="none">
+          <View style={styles.midSeamDark} />
+          <View style={styles.midSeamLight} />
+        </View>
         <PitRow
           indices={BOTTOM_INDICES}
           pits={pits}
@@ -103,8 +142,13 @@ export function GameBoard({
 
       {/* Sowing-hand overlay (temporary P2.3 proxy, gated OFF by default).
           When the flag is false nothing mounts — zero runtime impact. */}
+      {/* Sowing-hand overlay (gated). The prewarm layer decodes the photo
+          poses at board load so the hand shows from a move's FIRST frame. */}
       {SOWING_HAND_ENABLED ? (
-        <SowingHandOverlay frame={frame} registry={pitCenters} player={current} />
+        <>
+          <SowingHandPrewarm />
+          <SowingHandOverlay frame={frame} registry={pitCenters} player={current} />
+        </>
       ) : null}
     </View>
   );
@@ -273,24 +317,44 @@ function Store({ value, active }: { value: number; active: boolean }) {
       <AppText variant="h3" color={theme.palette.goldLight}>
         {value}
       </AppText>
-      {/* Decorative seed pile hinting at the captured collection. */}
+      {/* Decorative cowrie pile hinting at the captured collection. */}
       <View pointerEvents="none" style={styles.storePile}>
         {Array.from({ length: Math.max(1, pileCount) }, (_, i) => (
           <View
             key={i}
             style={[
               styles.pileSeed,
+              i % 3 !== 0 && styles.pileSeedOval,
               {
                 backgroundColor: SEED_COLORS[i % SEED_COLORS.length],
                 opacity: value > 0 ? 1 : 0.22,
+                transform: [{ rotate: `${((i * 53) % 60) - 30}deg` }],
               },
             ]}
-          />
+          >
+            {i % 2 === 0 ? <View style={styles.pileSeedSlit} /> : null}
+          </View>
         ))}
       </View>
     </Animated.View>
   );
 }
+
+/**
+ * Deterministic hand-planed grain streaks (percent-positioned so they scale
+ * with the board). Alternating faint dark cuts and warm catch-lights.
+ */
+const GRAIN_STREAKS = [
+  { top: '9%', left: '4%', right: '18%', height: 1.5, opacity: 0.22, light: false },
+  { top: '16%', left: '12%', right: '5%', height: 1, opacity: 0.1, light: true },
+  { top: '27%', left: '2%', right: '30%', height: 2, opacity: 0.18, light: false },
+  { top: '38%', left: '22%', right: '3%', height: 1, opacity: 0.12, light: true },
+  { top: '47%', left: '6%', right: '10%', height: 1.5, opacity: 0.2, light: false },
+  { top: '58%', left: '15%', right: '20%', height: 1, opacity: 0.1, light: true },
+  { top: '68%', left: '3%', right: '26%', height: 2, opacity: 0.17, light: false },
+  { top: '78%', left: '28%', right: '4%', height: 1, opacity: 0.11, light: true },
+  { top: '88%', left: '8%', right: '14%', height: 1.5, opacity: 0.2, light: false },
+] as const;
 
 const styles = StyleSheet.create({
   board: {
@@ -299,36 +363,55 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
     padding: theme.spacing.md,
     borderRadius: theme.radii.xl,
-    borderWidth: 2,
-    borderColor: 'rgba(200,155,60,0.55)',
+    borderWidth: 2.5,
+    borderColor: 'rgba(212,163,44,0.7)',
     overflow: 'hidden',
     ...theme.shadows.xl,
   },
   innerFrame: {
     position: 'absolute',
-    top: 6,
-    left: 6,
-    right: 6,
-    bottom: 6,
+    top: 5,
+    left: 5,
+    right: 5,
+    bottom: 5,
     borderRadius: theme.radii.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(228,193,115,0.24)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(228,193,115,0.38)',
+  },
+  // Second, finer inlay line — the double-gold border of royal heirloom boards.
+  inlayFrame: {
+    position: 'absolute',
+    top: 9,
+    left: 9,
+    right: 9,
+    bottom: 9,
+    borderRadius: theme.radii.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(246,228,160,0.3)',
   },
   corner: {
     position: 'absolute',
-    width: 16,
-    height: 16,
+    width: 18,
+    height: 18,
     borderColor: theme.colors.primary,
   },
-  cornerTL: { top: 8, left: 8, borderTopWidth: 2, borderLeftWidth: 2, borderTopLeftRadius: 6 },
-  cornerTR: { top: 8, right: 8, borderTopWidth: 2, borderRightWidth: 2, borderTopRightRadius: 6 },
-  cornerBL: { bottom: 8, left: 8, borderBottomWidth: 2, borderLeftWidth: 2, borderBottomLeftRadius: 6 },
-  cornerBR: { bottom: 8, right: 8, borderBottomWidth: 2, borderRightWidth: 2, borderBottomRightRadius: 6 },
+  cornerTL: { top: 8, left: 8, borderTopWidth: 2.5, borderLeftWidth: 2.5, borderTopLeftRadius: 7 },
+  cornerTR: { top: 8, right: 8, borderTopWidth: 2.5, borderRightWidth: 2.5, borderTopRightRadius: 7 },
+  cornerBL: { bottom: 8, left: 8, borderBottomWidth: 2.5, borderLeftWidth: 2.5, borderBottomLeftRadius: 7 },
+  cornerBR: { bottom: 8, right: 8, borderBottomWidth: 2.5, borderRightWidth: 2.5, borderBottomRightRadius: 7 },
   grid: { flex: 1, gap: theme.spacing.sm, justifyContent: 'center' },
-  midSeam: {
-    height: 1,
+  midSeamWrap: {
     marginHorizontal: theme.spacing.xs,
-    backgroundColor: 'rgba(228,193,115,0.18)',
+  },
+  midSeamDark: {
+    height: 1.5,
+    borderRadius: 999,
+    backgroundColor: 'rgba(10,4,1,0.5)',
+  },
+  midSeamLight: {
+    height: 1,
+    borderRadius: 999,
+    backgroundColor: 'rgba(228,193,115,0.22)',
   },
   row: { flexDirection: 'row', gap: theme.spacing.xs },
   pitTap: { flex: 1 },
@@ -349,7 +432,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#1B110A',
     borderWidth: 1.5,
-    borderColor: theme.colors.border,
+    borderColor: 'rgba(212,163,44,0.4)',
   },
   storeActive: {
     borderColor: theme.colors.primary,
@@ -371,18 +454,32 @@ const styles = StyleSheet.create({
     bottom: 3,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
-    borderColor: 'rgba(228,193,115,0.24)',
+    borderColor: 'rgba(228,193,115,0.3)',
   },
   storePile: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    width: 22,
+    width: 24,
     justifyContent: 'center',
     gap: 2,
   },
   pileSeed: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(139,104,60,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pileSeedOval: {
     width: 6,
-    height: 6,
-    borderRadius: 3,
+    height: 7.5,
+  },
+  pileSeedSlit: {
+    width: 1,
+    height: 4,
+    borderRadius: 0.5,
+    backgroundColor: 'rgba(122,84,48,0.55)',
   },
 });

@@ -14,13 +14,17 @@ import { AppText } from '@/components/ui/Text';
 import { theme } from '@/theme';
 
 /**
- * Shared carved-pit + seed rendering used by BOTH the real game board and the
- * how-to-play demo, so the two look and animate identically. Warm, natural seed
- * colours — cowrie ivory, tamarind browns, a maroon bead, and a royal jade bead
- * that ties the seeds to the new teal palette — with soft highlights and shadows
- * for a tactile, slightly 3-D feel.
+ * Shared carved-pit + shell rendering used by BOTH the real game board and the
+ * how-to-play demo, so the two look and animate identically. Authentic
+ * Pallanguzhi is played with COWRIE SEA SHELLS (சோழி) — the palette is
+ * natural cowrie: porcelain ivory through warm sand to honeyed tan, with
+ * soft highlights and shadows for a tactile, slightly 3-D feel. About half
+ * the shells land aperture-up and show the cowrie's characteristic slit.
  */
-export const SEED_COLORS = ['#F5E9CE', '#E1C596', '#C79256', '#7E4E2B', '#8B2A22', '#1E6B64'];
+export const SEED_COLORS = ['#F7EEDC', '#F2E4C8', '#EBD9B4', '#E3CCA0', '#EFE2C2', '#F5EAD2'];
+/** Aperture-slit tint for shells that land opening-up. */
+const COWRIE_SLIT = 'rgba(122,84,48,0.55)';
+const COWRIE_EDGE = 'rgba(139,104,60,0.5)';
 const DEFAULT_MAX_SEEDS = 14;
 const GOLDEN_ANGLE = 2.399963229728653;
 
@@ -31,6 +35,8 @@ export interface SeedSpec {
   color: string;
   rotate: number;
   oval: boolean;
+  /** Landed aperture-up: shows the cowrie's characteristic toothed slit. */
+  aperture: boolean;
 }
 
 /** Sunflower (golden-angle) packing so seeds sit naturally and fill outward. */
@@ -50,6 +56,7 @@ export function seedLayout(n: number, size: number): SeedSpec[] {
       // Deterministic per-index variation (no random → stable across renders).
       rotate: ((i * 137) % 70) - 35,
       oval: i % 3 !== 0,
+      aperture: i % 2 === 0,
     });
   }
   return specs;
@@ -89,6 +96,7 @@ export function Seed({ spec, index, animate = true }: { spec: SeedSpec; index: n
           height: h,
           borderRadius: spec.d / 2,
           backgroundColor: spec.color,
+          borderColor: COWRIE_EDGE,
         },
         style,
       ]}
@@ -118,6 +126,20 @@ export function Seed({ spec, index, animate = true }: { spec: SeedSpec; index: n
           backgroundColor: 'rgba(0,0,0,0.18)',
         }}
       />
+      {/* aperture-up cowries show the characteristic toothed slit */}
+      {spec.aperture ? (
+        <View
+          style={{
+            position: 'absolute',
+            left: w / 2 - Math.max(0.8, w * 0.07),
+            top: h * 0.18,
+            width: Math.max(1.6, w * 0.14),
+            height: h * 0.64,
+            borderRadius: spec.d * 0.1,
+            backgroundColor: COWRIE_SLIT,
+          }}
+        />
+      ) : null}
     </Animated.View>
   );
 }

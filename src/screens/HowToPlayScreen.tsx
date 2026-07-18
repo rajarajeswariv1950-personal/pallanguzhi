@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { Platform, View, StyleSheet } from 'react-native';
 import {
   BrandedScreen,
   Card,
@@ -16,6 +16,19 @@ import { FaqItem } from '@/features/tutorial/FaqItem';
 import { useAppTranslation } from '@/hooks/useAppTranslation';
 import type { RootStackScreenProps } from '@/navigation/types';
 import { theme } from '@/theme';
+
+/**
+ * Handwritten script for the rule headings — a warm, storybook feel. Each
+ * platform supplies its own built-in script face (no font download, so it
+ * works offline on web, iOS and Android alike). Tamil headings automatically
+ * fall back to the system Tamil font because script faces carry no Tamil
+ * glyphs — the fallback is intentional and keeps Tamil perfectly readable.
+ */
+const SCRIPT_FONT = Platform.select({
+  ios: 'Snell Roundhand',
+  android: 'cursive',
+  default: '"Snell Roundhand", "Brush Script MT", "Segoe Script", "Comic Sans MS", cursive',
+});
 
 export function HowToPlayScreen(_props: RootStackScreenProps<'HowToPlay'>) {
   const { t } = useAppTranslation();
@@ -98,6 +111,7 @@ export function HowToPlayScreen(_props: RootStackScreenProps<'HowToPlay'>) {
         <FadeSlideIn delay={step()}>
           <Card>
             <ExampleDiagram
+              titleStyle={styles.scriptTitle}
               title={t('tutorial.sowingExampleTitle')}
               caption={t('tutorial.sowingExampleCaption')}
               beforeLabel={t('tutorial.before')}
@@ -108,15 +122,67 @@ export function HowToPlayScreen(_props: RootStackScreenProps<'HowToPlay'>) {
           </Card>
         </FadeSlideIn>
 
+        {/* Capture, retold clearly: the last shell lands (gold ring), the next
+            pit is empty (dashed ring), so the shells one pit beyond (maroon)
+            are collected into the store. The legend decodes each marker. */}
         <FadeSlideIn delay={step()}>
           <Card>
             <ExampleDiagram
+              titleStyle={styles.scriptTitle}
               title={t('tutorial.captureExampleTitle')}
               caption={t('tutorial.captureExampleCaption')}
               beforeLabel={t('tutorial.before')}
               afterLabel={t('tutorial.after')}
-              before={{ top: [2, 2, 2, 2, 2, 2, 2], bottom: [0, 0, 0, 0, 0, 1, 2], store: 0, highlightBottom: [5] }}
-              after={{ top: [2, 2, 2, 2, 2, 2, 2], bottom: [0, 0, 0, 0, 0, 1, 0], store: 2, highlightBottom: [6] }}
+              before={{
+                top: [2, 2, 2, 2, 2, 2, 2],
+                bottom: [2, 2, 2, 1, 0, 3, 2],
+                store: 0,
+                highlightBottom: [3],
+                emptyBottom: [4],
+                captureBottom: [5],
+              }}
+              after={{
+                top: [2, 2, 2, 2, 2, 2, 2],
+                bottom: [2, 2, 2, 1, 0, 0, 2],
+                store: 3,
+                highlightBottom: [3],
+                emptyBottom: [4],
+              }}
+              legend={[
+                { kind: 'last', label: t('tutorial.legendLastDrop') },
+                { kind: 'empty', label: t('tutorial.legendEmpty') },
+                { kind: 'capture', label: t('tutorial.legendCaptured') },
+              ]}
+            />
+          </Card>
+        </FadeSlideIn>
+
+        {/* The Pasu (cow): a sown shell makes a pit exactly four, and all
+            four are claimed into the store at once. */}
+        <FadeSlideIn delay={step()}>
+          <Card>
+            <ExampleDiagram
+              titleStyle={styles.scriptTitle}
+              title={t('tutorial.pasuExampleTitle')}
+              caption={t('tutorial.pasuExampleCaption')}
+              beforeLabel={t('tutorial.before')}
+              afterLabel={t('tutorial.after')}
+              before={{
+                top: [2, 2, 2, 2, 2, 2, 2],
+                bottom: [2, 0, 3, 2, 2, 2, 2],
+                store: 0,
+                highlightBottom: [2],
+              }}
+              after={{
+                top: [2, 2, 2, 2, 2, 2, 2],
+                bottom: [2, 0, 0, 2, 2, 2, 2],
+                store: 4,
+                captureBottom: [2],
+              }}
+              legend={[
+                { kind: 'last', label: t('tutorial.legendLastDrop') },
+                { kind: 'capture', label: t('tutorial.legendCaptured') },
+              ]}
             />
           </Card>
         </FadeSlideIn>
@@ -143,6 +209,12 @@ export function HowToPlayScreen(_props: RootStackScreenProps<'HowToPlay'>) {
           <FaqItem question={t('tutorial.faqQ2')} answer={t('tutorial.faqA2')} />
           <FaqItem question={t('tutorial.faqQ3')} answer={t('tutorial.faqA3')} />
           <FaqItem question={t('tutorial.faqQ4')} answer={t('tutorial.faqA4')} />
+          <FaqItem question={t('tutorial.faqQ5')} answer={t('tutorial.faqA5')} />
+          <FaqItem question={t('tutorial.faqQ6')} answer={t('tutorial.faqA6')} />
+          <FaqItem question={t('tutorial.faqQ7')} answer={t('tutorial.faqA7')} />
+          <FaqItem question={t('tutorial.faqQ8')} answer={t('tutorial.faqA8')} />
+          <FaqItem question={t('tutorial.faqQ9')} answer={t('tutorial.faqA9')} />
+          <FaqItem question={t('tutorial.faqQ10')} answer={t('tutorial.faqA10')} />
         </View>
       </View>
     </BrandedScreen>
@@ -155,7 +227,7 @@ function SectionHeader({ icon, title }: { icon: IconName; title: string }): Reac
       <View style={styles.iconWrap}>
         <Icon name={icon} size={20} color={theme.colors.primaryLight} />
       </View>
-      <AppText variant="h3" style={styles.sectionTitle}>
+      <AppText variant="h3" style={[styles.sectionTitle, styles.scriptTitle]}>
         {title}
       </AppText>
     </View>
@@ -183,6 +255,16 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   sectionTitle: { flex: 1 },
+  // Storybook script for headings; slightly larger so the flourish reads
+  // clearly. Body copy stays in the clean system face for easy reading by
+  // children and elders alike.
+  scriptTitle: {
+    fontFamily: SCRIPT_FONT,
+    fontSize: 26,
+    lineHeight: 34,
+    fontWeight: '600',
+    color: theme.colors.primaryDeep,
+  },
   divider: { marginVertical: theme.spacing.md },
   demoIntro: { marginTop: theme.spacing.xs },
   groupLabel: { marginTop: theme.spacing.sm, marginLeft: theme.spacing.xs },

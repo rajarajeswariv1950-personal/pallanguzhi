@@ -10,10 +10,16 @@ export const sfxSources: Record<SfxName, number> = {
 };
 
 /**
- * Background music — the owner-supplied Indian classical instrumental fusion
- * track. Starts automatically ONLY when a match begins (any mode/level; the
- * gameplay screen flips `setGameplayMusicActive(true)` on mount), loops at a
- * low volume via the single shared music player in AudioService (never more
- * than one instance), and stops when the player leaves the board.
+ * Background music — the owner-supplied gameplay playlist, in play order.
+ * Track 1 (the calm "pure magic" relaxation piece) always opens the match;
+ * when it ends, track 2 (the Indian classical instrumental fusion) follows;
+ * after both finish the pair repeats, alternating forever. Music starts
+ * automatically ONLY when a match begins (any mode/level; the gameplay
+ * screen flips `setGameplayMusicActive(true)` on mount), plays at a low
+ * volume via the single shared music pipeline in AudioService (never more
+ * than one track audible), and stops when the player leaves the board.
  */
-export const ambientSource: number = require('../../../assets/audio/classical-fusion-peace.mp3');
+export const musicPlaylist: number[] = [
+  require('../../../assets/audio/pure-magic-relaxation.mp3'),
+  require('../../../assets/audio/classical-fusion-peace.mp3'),
+];

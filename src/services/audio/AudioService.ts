@@ -1,7 +1,7 @@
 import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import { create } from 'zustand';
 import { useSettingsStore } from '@/store/settingsStore';
-import { ambientSource, sfxSources, type SfxName } from './sounds';
+import { musicPlaylist, sfxSources, type SfxName } from './sounds';
 
 /**
  * Live playback state of the shared gameplay music player, for UI such as the
@@ -13,7 +13,15 @@ export const useMusicPlayback = create<{ playing: boolean }>(() => ({ playing: f
 type Player = ReturnType<typeof createAudioPlayer>;
 
 const players: Partial<Record<SfxName, Player>> = {};
-let musicPlayer: Player | null = null;
+/**
+ * One lazily created player per playlist track. Exactly one is ever audible;
+ * the others stay paused. Kept as separate players (rather than swapping one
+ * player's source) so the hand-off between tracks is instant and glitch-free.
+ */
+const musicPlayers: (Player | null)[] = musicPlaylist.map(() => null);
+const musicListeners: (ReturnType<Player['addListener']> | null)[] = musicPlaylist.map(() => null);
+/** Index into `musicPlaylist` of the track currently in rotation. */
+let currentTrack = 0;
 let initialized = false;
 let unsubscribe: (() => void) | null = null;
 
@@ -45,23 +53,59 @@ export function playSfx(name: SfxName): void {
   }
 }
 
-function ensureMusic(): Player | null {
+/**
+ * Lazily create (and cache) the player for one playlist track. Tracks do NOT
+ * loop individually — when one ends, the finish listener advances the
+ * rotation to the next track, so the pair plays alternately forever:
+ * track 1, then track 2, then track 1 again, and so on.
+ */
+function ensureTrack(index: number): Player | null {
   try {
-    if (!musicPlayer) {
-      musicPlayer = createAudioPlayer(ambientSource);
-      musicPlayer.loop = true;
-      musicPlayer.volume = useSettingsStore.getState().musicVolume;
+    let p = musicPlayers[index];
+    if (!p) {
+      p = createAudioPlayer(musicPlaylist[index]);
+      p.loop = false;
+      p.volume = useSettingsStore.getState().musicVolume;
+      musicPlayers[index] = p;
+      musicListeners[index] = p.addListener('playbackStatusUpdate', (status) => {
+        if (status.didJustFinish) advanceTrack(index);
+      });
     }
-    return musicPlayer;
+    return p;
   } catch {
     return null;
   }
 }
 
-/** Push the current music level to the live player (called on volume changes). */
+/** The player for the track currently in rotation. */
+function ensureMusic(): Player | null {
+  return ensureTrack(currentTrack);
+}
+
+/**
+ * A track finished: rewind it for its next appearance and hand the rotation
+ * to the following track (wrapping), which starts immediately if music
+ * should be audible right now.
+ */
+function advanceTrack(finished: number): void {
+  try {
+    if (finished !== currentTrack) return; // stale event from a paused player
+    const p = musicPlayers[finished];
+    if (p) void p.seekTo(0);
+    currentTrack = (currentTrack + 1) % musicPlaylist.length;
+    syncMusic();
+  } catch {
+    // ignore
+  }
+}
+
+/** Push the current music level to every live player (called on volume changes). */
 export function applyMusicVolume(): void {
   try {
-    if (musicPlayer) musicPlayer.volume = useSettingsStore.getState().musicVolume;
+    const volume = useSettingsStore.getState().musicVolume;
+    musicPlayers.forEach((p) => {
+      if (p) p.volume = volume;
+    });
   } catch {
     // ignore
   }
@@ -84,7 +128,22 @@ let userPaused = false;
 /** Called by the gameplay screen on mount/unmount (covers every mode). */
 export function setGameplayMusicActive(active: boolean): void {
   gameplayActive = active;
-  if (active) userPaused = false; // each match starts with music on
+  if (active) {
+    userPaused = false; // each match starts with music on
+    // Every match opens with track 1 from its beginning, as designed.
+    try {
+      musicPlayers.forEach((p, i) => {
+        if (p && i !== currentTrack) p.pause();
+      });
+      if (currentTrack !== 0) {
+        musicPlayers[currentTrack]?.pause();
+        currentTrack = 0;
+      }
+      void musicPlayers[0]?.seekTo(0);
+    } catch {
+      // ignore
+    }
+  }
   syncMusic();
 }
 
@@ -100,12 +159,16 @@ export function resumeGameplayMusic(): void {
   syncMusic();
 }
 
-/** Start/stop the gameplay loop to match the music toggle, and apply the level. */
+/** Start/stop the gameplay playlist to match the music toggle, and apply the level. */
 export function syncMusic(): void {
   try {
     const { music, musicVolume } = useSettingsStore.getState();
     const p = ensureMusic();
     const shouldPlay = !!p && music && gameplayActive && !userPaused;
+    // Only the track in rotation may sound; all others stay paused.
+    musicPlayers.forEach((other, i) => {
+      if (other && i !== currentTrack) other.pause();
+    });
     if (p) {
       p.volume = musicVolume;
       if (shouldPlay) p.play();
@@ -119,7 +182,7 @@ export function syncMusic(): void {
 
 export function stopMusic(): void {
   try {
-    musicPlayer?.pause();
+    musicPlayers.forEach((p) => p?.pause());
   } catch {
     // ignore
   }
@@ -151,8 +214,15 @@ export function disposeAudio(): void {
     unsubscribe?.();
     unsubscribe = null;
     Object.values(players).forEach((p) => p?.remove());
-    musicPlayer?.remove();
-    musicPlayer = null;
+    musicListeners.forEach((l, i) => {
+      l?.remove();
+      musicListeners[i] = null;
+    });
+    musicPlayers.forEach((p, i) => {
+      p?.remove();
+      musicPlayers[i] = null;
+    });
+    currentTrack = 0;
     initialized = false;
   } catch {
     // ignore

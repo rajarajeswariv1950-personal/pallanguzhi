@@ -142,8 +142,9 @@ export const gradients = {
   header: ['rgba(255,250,240,0.98)', 'rgba(246,233,208,0.95)'] as [string, string],
 
   // ── Board materials (REALISTIC wood — deliberately kept dark & tactile) ──
-  board: ['#5C3B22', '#3F2717', '#281910'] as [string, string, string],
-  boardSheen: ['rgba(255,228,176,0.16)', 'transparent'] as [string, string],
+  // Polished heirloom rosewood: warm lit edge falling into a deep oiled core.
+  board: ['#6B4226', '#452A16', '#2B1A0E'] as [string, string, string],
+  boardSheen: ['rgba(255,228,176,0.2)', 'transparent'] as [string, string],
   pit: ['rgba(0,0,0,0.60)', 'rgba(78,48,28,0.30)', 'rgba(120,74,42,0.34)'] as [
     string,
     string,

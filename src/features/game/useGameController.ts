@@ -117,9 +117,14 @@ export function useGameController({
         setFrame(f);
         if (f.kind === 'capture') feedback('capture', 'medium');
         else if (f.kind === 'drop') playSfx('seed');
+        // Scoop frames dwell a little longer than drops: the sowing hand
+        // visibly reaches in and grabs the shells at the chosen pit BEFORE
+        // the first drop plays. Presentation pacing only — the frame
+        // sequence and rules are untouched.
+        const speed = MOVE_SPEED_MS[useSettingsStore.getState().moveSpeed];
         frameTimer.current = setTimeout(
           step,
-          MOVE_SPEED_MS[useSettingsStore.getState().moveSpeed],
+          f.kind === 'scoop' ? Math.round(speed * 1.65) : speed,
         );
       };
       step();

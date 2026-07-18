@@ -67,53 +67,54 @@ export const en = {
     title: 'How to Play',
     variantTitle: 'About This Version',
     variant:
-      "This app plays the continuous-sowing Pallanguzhi variant: laps keep going while each lap ends on a filled pit, together with the kāsu four-capture rule and an end-of-lap capture, on a board of two rows of seven pits with six seeds per pit, decided in a single round. Regional Pallanguzhi has many variants — the rules below are exactly what this app's engine follows.",
+      'Pallanguzhi is played a little differently from village to village, and every family has its own beloved way. This app follows one classic, widely loved style. Sowing continues lap after lap as long as each lap ends beside a pit that has shells. A pit that grows to exactly four shells becomes a Pasu, a cow, and is claimed at once. When a lap ends at an empty pit, the shells waiting just beyond it are captured. The match is decided in a single round. Everything below explains this step by step.',
     overviewTitle: 'The Board',
     overview:
-      "Pallanguzhi is played on a wooden board of two rows with seven pits each — fourteen pits in all. You own the row nearer you; your opponent owns the far row. Each of you also has a store for captured seeds. At the start every pit holds six seeds — shells, pebbles, or tamarind seeds — so the board opens with 84 seeds in play.",
+      'Pallanguzhi is played on a beautiful wooden board with two rows of seven small pits, fourteen in all. The row nearer to you is yours, and the far row belongs to the other player. Each player also has a store, a safe resting place for captured shells. At the start every pit holds six cowrie shells, the small sea shells Tamil families have always played with, so the game opens with 84 shells on the board.',
     setupTitle: 'Setting Up',
     setup:
-      "Fill all fourteen pits with six seeds each and leave both stores empty. You own the seven pits on your side; your opponent owns the seven opposite. The first player begins.",
-    objectiveTitle: 'Objective',
+      'Place six cowrie shells in every one of the fourteen pits and keep both stores empty. The seven pits on your side belong to you, and the seven pits opposite belong to the other player. Decide who plays first, and the game begins.',
+    objectiveTitle: 'The Aim of the Game',
     objective:
-      "Capture more seeds than your opponent. Captured seeds leave the board and rest safely in your store, and whoever has gathered the most seeds when the round ends wins.",
+      'Collect more shells than the other player. Shells you capture leave the board and rest safely in your store. When the round ends, the player whose store holds the most shells wins.',
     movesTitle: 'Making a Move',
     moves:
-      "On your turn, choose any one of your own non-empty pits and lift ALL of its seeds into your hand. You must start from a pit on your own side — but the seeds you sow travel across both rows.",
-    sowingTitle: 'Sowing',
+      'On your turn, choose any pit on your own side that has shells in it. Pick up every shell from that pit into your hand. You always begin from your own side, but as you sow, your shells travel around the whole board and fall into the other player’s pits as well.',
+    sowingTitle: 'Sowing the Shells',
     sowing:
-      "Seeds are always sown in one fixed direction — anti-clockwise — dropping exactly one seed into each pit you pass, including your opponent's pits. The sowing simply wraps around the board; stores are never sown into.",
-    lapsTitle: 'Laps & Continuation',
+      'Move around the board in the anticlockwise direction, dropping exactly one shell into each pit as you pass. Every pit on the way receives one shell, including the other player’s pits. The two stores are never sown into. When you reach the end of the board, simply carry on around it.',
+    lapsTitle: 'Laps, and How a Turn Continues',
     laps:
-      "When the last seed leaves your hand, look at the very next pit:\n•  If it has seeds, scoop up all of them and keep sowing — a new lap, and your turn continues.\n•  If it is empty, your sowing stops there. That empty pit is where this lap ends.",
+      'When the last shell leaves your hand, look at the very next pit.\n•  If that pit has shells, pick all of them up and keep sowing. This is called a new lap, and your turn happily continues.\n•  If that pit is empty, your sowing stops right there.',
     capturesTitle: 'Capturing',
     captures:
-      "When a lap stops on an empty pit, look one pit further — the pit just beyond the empty one. If it holds seeds, you capture all of them into your store. If that pit is also empty, you capture nothing. Then your turn ends and play passes to your opponent.",
-    fourTitle: 'The Four Rule (Kāsu)',
+      'When your sowing stops at an empty pit, look at the pit just beyond that empty one. If it holds shells, they are yours. Collect every shell from that pit into your store. If that pit is empty too, there is nothing to collect this time. Either way, your turn then ends and the other player begins theirs.',
+    fourTitle: 'The Cow Rule (Pasu)',
     four:
-      "At any point during sowing, the moment a pit's count becomes exactly four, those four seeds are ripe — kāsu — and are captured into your store at once. The pit is cleared and you keep sowing. This can happen more than once in a single turn.",
-    turnsTitle: 'Turns',
+      'This is the rule children love the most. While shells are being sown, watch every pit they fall into. The moment a falling shell makes a pit hold exactly four shells, those four become a Pasu, which means a cow. The player whose shell completed the four claims all four shells into their store straight away, from either row of the board. The pit is emptied and the sowing simply carries on. In some families this same rule is called Kasu. One turn can create several cows.',
+    turnsTitle: 'Taking Turns',
     turns:
-      "Players alternate. A turn can be long: as long as each lap ends on a filled pit you keep sowing, lap after lap. Your turn ends only when a lap finishes on an empty pit, after resolving any capture beyond it.",
+      'The two players play one after the other. A single turn can be long and exciting, because your turn keeps going as long as each lap ends beside a pit that has shells. Your turn finishes only when a lap stops at an empty pit, after you collect any capture waiting beyond it.',
     roundsTitle: 'How the Round Ends',
     rounds:
-      "The round runs until the player whose turn it is has no seeds on their own side and cannot move. The round then ends, and every seed still on the board is banked by the player who owns that pit's side.",
-    scoringTitle: 'Scoring',
+      'The round ends when the player whose turn it is finds every pit on their side empty, so they cannot move. At that moment, each shell still sitting on the board goes home to the player who owns that side. Then the two stores are counted.',
+    scoringTitle: 'Counting the Shells',
     scoring:
-      "Your score is the number of seeds in your store when the round ends — those you captured during play plus any banked from your side at the end. Because the board holds 84 seeds, the two scores always add up to 84.",
+      'Your score is simply the number of shells resting in your store at the end. That includes the ones you captured while playing and the ones gathered from your side when the round closed. The board holds 84 shells in all, so the two scores together always make 84.',
     winnerTitle: 'Winning',
     winner:
-      "The player with more seeds in their store wins. Equal stores are a draw. This edition is decided in a single round.",
-    edgeTitle: 'Edge Cases & Good to Know',
+      'The player with more shells in their store wins the match. If both stores hold the same number, the game is a friendly draw. This edition is decided in a single round.',
+    edgeTitle: 'Good to Know',
     edge:
-      "•  You must move if any of your pits has seeds — you cannot pass.\n•  A lone seed landing in an empty next pit ends the turn with no capture.\n•  A long hand wraps the board and can pass — and refill — your own starting pit.\n•  The four-rule and the end-of-lap capture can both trigger in the same turn.",
-    tipsTitle: 'Beginner Tips',
+      '•  If any pit on your side has shells, you must play. There is no skipping a turn in Pallanguzhi.\n•  If your sowing stops at an empty pit and the pit beyond it is also empty, your turn ends with no capture. That is perfectly normal.\n•  A long sowing can travel right around the board and even refill the pit you started from.\n•  The Pasu rule and the capture at the end of a lap can both happen in the same turn.',
+    tipsTitle: 'Tips for New Players',
     tips:
-      "Trace where your last seed will land before you commit, and check whether the pit beyond an empty one is worth the capture. Build a pit to exactly four for a quick kāsu. Remember you sow into your opponent's pits too, so watch what a move hands them. Longer laps aren't always better — sometimes a short, well-aimed sow captures more.",
+      'Before you choose a pit, quietly count where your last shell will land. Look at the pit beyond every empty pit and ask whether it is worth a capture. Try to grow a pit to exactly four shells and claim a quick Pasu. Remember that your shells also fall into the other player’s pits, so notice what your move gives them. And do not chase long turns every time. A short, well aimed sow often collects far more.',
   },
   tutorial: {
-    demoTitle: 'Watch a move',
-    demoIntro: 'Press play to watch a turn unfold — pause, step, rewind, or change speed anytime.',
+    demoTitle: 'Watch a Move',
+    demoIntro:
+      'Press play and watch one full turn unfold on the very same board you play on. You can pause, step through it slowly, or change the speed whenever you like.',
     play: 'Play',
     replay: 'Replay',
     pause: 'Pause',
@@ -125,28 +126,58 @@ export const en = {
     speed: 'Speed {{value}}',
     stepLabel: 'Step {{current}} of {{total}}',
     controlsHint: 'Play or pause, step one move at a time, or adjust the speed.',
-    step1: 'Pick up all the seeds from one of your pits.',
-    step2: 'Drop one seed into each following pit, in order.',
-    step3: 'Keep sowing — one seed per pit.',
-    step4: 'The final seed lands here.',
-    step5: 'A capture! These seeds go to your store.',
-    step6: 'Your turn ends — your opponent plays next.',
-    examplesTitle: 'Illustrated Examples',
+    step1: 'The hand picks up all the shells from one of your pits.',
+    step2: 'It drops one shell into the next pit, and moves on in order.',
+    step3: 'The sowing continues. One shell falls into each pit.',
+    step4: 'The last shell lands here.',
+    step5: 'A capture! These shells travel into your store.',
+    step6: 'Your turn is over. Now the other player plays.',
+    examplesTitle: 'See It in Pictures',
     sowingExampleTitle: 'Sowing',
-    sowingExampleCaption: 'Seeds from one pit are spread one-by-one into the pits that follow.',
+    sowingExampleCaption:
+      'The glowing pit held five shells. They are sown one by one into the five pits that follow it, one shell to each pit.',
     captureExampleTitle: 'Capturing',
-    captureExampleCaption: 'Finishing in the right spot lets you collect seeds into your store.',
+    captureExampleCaption:
+      'Your last shell lands in the golden ringed pit. The next pit is empty, so you look one pit further. The three shells waiting there are yours, and they move into your store on the right.',
+    pasuExampleTitle: 'The Cow Rule (Pasu)',
+    pasuExampleCaption:
+      'This pit held three shells. A sown shell falls in and makes it exactly four. Those four shells become a Pasu, a cow, and all four are claimed into the store at once.',
+    legendLastDrop: 'Last shell lands here',
+    legendEmpty: 'Empty pit',
+    legendCaptured: 'These shells are captured',
     before: 'Before',
     after: 'After',
     faqTitle: 'Frequently Asked Questions',
     faqQ1: 'How is the board set up?',
-    faqA1: 'Two rows of seven pits — one row per player — with seeds shared evenly to start.',
-    faqQ2: 'Which way do I sow?',
-    faqA2: 'Always one consistent direction (anti-clockwise), one seed per pit.',
-    faqQ3: 'How do I win?',
-    faqA3: 'Capture more seeds than your opponent across the rounds.',
-    faqQ4: 'Can I get another turn?',
-    faqA4: 'Yes — certain moves can earn you an extra turn.',
+    faqA1:
+      'The board has two rows of seven pits, one row for each player, and each player has a store beside the board. Every pit begins with six cowrie shells, which makes 84 shells in play. Both stores start empty.',
+    faqQ2: 'Which way do I sow the shells?',
+    faqA2:
+      'Always in the same direction, anticlockwise around the board, dropping one shell into each pit as you go. The direction never changes at any point in the game, so you never need to guess.',
+    faqQ3: 'Do I get another chance, or an extra turn?',
+    faqA3:
+      'Yes, and here is exactly how. When your last shell falls, look at the very next pit. If it has shells, you pick all of them up and continue sowing. That is a fresh lap inside the same turn, so your turn simply carries on. One turn can hold many laps this way. Your turn truly ends only when a lap stops beside an empty pit, after you collect any capture waiting beyond it. Then the other player plays.',
+    faqQ4: 'What is a Pasu, the cow?',
+    faqA4:
+      'When a sown shell makes any pit hold exactly four shells, those four are called a Pasu, which means a cow. The player whose shell completed the four claims all four shells into their store at once, and the sowing continues as if nothing happened. Some families call the same rule Kasu.',
+    faqQ5: 'Do my shells fall into the other player’s pits too?',
+    faqA5:
+      'Yes. Sowing flows around the whole board, one shell into every pit you pass, on both sides. Only the two stores are skipped. This is why a clever player watches what a move gives the other side.',
+    faqQ6: 'What happens when my sowing stops at an empty pit?',
+    faqA6:
+      'Your sowing ends there. Now look at the pit just beyond the empty one. If it holds shells, you capture every one of them into your store. If it is empty as well, there is nothing to take this time. Either way, your turn then passes to the other player.',
+    faqQ7: 'Can I skip my turn?',
+    faqA7:
+      'No. If any pit on your side has even one shell, you must choose a pit and play it. There is no passing in Pallanguzhi.',
+    faqQ8: 'How does the game end, and how is the winner decided?',
+    faqA8:
+      'The round closes when the player who must move finds all seven of their pits empty. Every shell still on the board then goes to the player who owns that side, and the two stores are counted. The board carries 84 shells, so the two scores always add up to 84. The bigger store wins, and equal stores mean a friendly draw.',
+    faqQ9: 'Why cowrie shells and not seeds or stones?',
+    faqA9:
+      'Tamil families have played Pallanguzhi for generations with small sea shells called cowries, known in Tamil as sozhi. Tamarind seeds and pebbles were used when shells were not at hand. This app uses cowrie shells throughout, on the board and in every lesson, to keep the true feel of the traditional game.',
+    faqQ10: 'Is this game good for children and elders?',
+    faqA10:
+      'Wonderfully so. Pallanguzhi gently builds counting, planning, memory and patience, and it has connected grandparents and grandchildren for centuries. Watch the little demo above, play a slow practice game, and the rules will feel natural within minutes.',
   },
   mode: {
     title: 'Choose Game Mode',
@@ -243,9 +274,9 @@ export const en = {
     round: 'Round {{number}}',
     pause: 'Pause',
     selectPit: 'Tap one of your pits to sow',
-    sowing: 'Sowing seeds\u2026',
-    pitLabel: 'Pit, {{count}} seeds',
-    storeLabel: 'Store, {{count}} seeds',
+    sowing: 'Sowing shells\u2026',
+    pitLabel: 'Pit, {{count}} shells',
+    storeLabel: 'Store, {{count}} shells',
   },
   pause: {
     title: 'Paused',
@@ -395,7 +426,8 @@ export const en = {
     twoPlayerLockedBody:
       'Two players on one device is a premium feature — all three levels (Easy, Medium and Hard) unlock together with a one-time purchase or a friend access code. No account needed.',
     cta: 'Unlock — coming soon',
-    ctaNote: 'Purchases are not available yet. This unlock will be enabled in an upcoming update.',
+    ctaNote:
+      'Purchases are not open just yet. A secure Razorpay payment link is being prepared and will appear right here once it is live. Until then, an access code from Phoenix Neumed unlocks everything.',
     ownerGranted: 'Access granted by Phoenix Neumed',
     locked: 'Locked',
     infoTitle: 'Premium Access',
@@ -433,7 +465,7 @@ export const en = {
     relockAction: 'Remove unlock',
   },
   musicBar: {
-    hint: 'A premium motivational soundtrack accompanies your match. Use the controls below to play or pause it anytime.',
+    hint: 'Two soothing melodies take turns accompanying your match, one after the other. Use the controls below to play or pause them anytime.',
     hintDismiss: 'Got it',
     play: 'Play',
     stop: 'Stop',
